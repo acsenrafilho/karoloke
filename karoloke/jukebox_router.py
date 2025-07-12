@@ -100,4 +100,10 @@ def setup_video_dir():
         return {'status': 'error', 'message': 'Invalid directory'}, 400
     # GET request: show the setup page
     background_img = get_background_img(BACKGROUND_DIR)
-    return render_template('video_path_setup.html', bg_img=background_img)
+    return render_template(VIDEO_PATH_SETUP_TEMPLATE, bg_img=background_img)
+
+
+@app.route('/score')
+def score():
+    bg_img = get_background_img(BACKGROUND_DIR)
+    return render_template('score.html', bg_img=bg_img)
