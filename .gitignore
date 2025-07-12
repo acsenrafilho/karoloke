@@ -7,6 +7,9 @@ music_list/*
 *.ogg
 *.webm
 
+#Scripts
+karoloke/scripts/*output*
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/

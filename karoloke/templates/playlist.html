@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Playlist</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #222;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .playlist-table {
+            margin: 40px auto;
+            border-collapse: collapse;
+            width: 90%;
+            background: rgba(0,0,0,0.7);
+            box-shadow: 0 0 20px #55075c;
+        }
+        .playlist-table th, .playlist-table td {
+            border: 1px solid #444;
+            padding: 12px 18px;
+            text-align: left;
+        }
+        .playlist-table th {
+            background: #55075c;
+        }
+        .playlist-table tr:nth-child(even) {
+            background: rgba(255,255,255,0.04);
+        }
+        .screenshot {
+            width: 120px;
+            height: 68px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 0 8px #000;
+        }
+        .filter-input {
+            width: 90%;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #888;
+            font-size: 1em;
+            margin-bottom: 4px;
+            background: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center; margin-top:32px;">Playlist de Vídeos</h1>
+    <table class="playlist-table" id="playlist-table">
+        <thead>
+            <tr>
+                <th>
+                    <input class="filter-input" type="text" placeholder="Filtrar filename" onkeyup="filterTable(0)">
+                    Filename
+                </th>
+                <th>
+                    <input class="filter-input" type="text" placeholder="Filtrar artista" onkeyup="filterTable(1)">
+                    Artist
+                </th>
+                <th>
+                    <input class="filter-input" type="text" placeholder="Filtrar título" onkeyup="filterTable(2)">
+                    Title
+                </th>
+                <th>
+                    <input class="filter-input" type="text" placeholder="Filtrar parte" onkeyup="filterTable(3)">
+                    Part
+                </th>
+            </tr>
+        </thead>
+        <tbody id="playlist-body">
+            {% for video in playlist %}
+            <tr>
+                <td>{{ video.filename }}</td>
+                <td>{{ video.artist }}</td>
+                <td>{{ video.title }}</td>
+                <td>{{ video.part }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        // Load playlist JSON from static folder
+        fetch('/static/playlist.json')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('playlist-body');
+                tbody.innerHTML = '';
+                data.forEach(video => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${video.filename || ''}</td>
+                        <td>${video.artist || ''}</td>
+                        <td>${video.title || ''}</td>
+                        <td>${video.part || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+
+        // Filter function for each column
+        function filterTable(colIdx) {
+            const table = document.getElementById('playlist-table');
+            const input = table.querySelectorAll('.filter-input')[colIdx];
+            const filter = input.value.toLowerCase();
+            const rows = table.tBodies[0].rows;
+            for (let i = 0; i < rows.length; i++) {
+                const cell = rows[i].cells[colIdx];
+                if (cell) {
+                    const txtValue = cell.textContent || cell.innerText;
+                    rows[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

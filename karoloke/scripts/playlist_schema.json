@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "filename": {
+      "type": "string",
+      "description": "Filename without the extension"
+    },
+    "artist": {
+      "type": "string",
+      "description": "Artist name"
+    },
+    "title": {
+      "type": "string",
+      "description": "Song title"
+    },
+    "part": {
+      "type": "string",
+      "description": "Song part"
+    }
+  },
+  "required": ["filename", "artist", "title", "part"]
+}
