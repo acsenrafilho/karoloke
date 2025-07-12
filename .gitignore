@@ -1,3 +1,6 @@
+# VSCode
+.vscode/*
+
 #mp4 files
 music_list/*
 *.mp4
