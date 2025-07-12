@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Karaoke Jukebox</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            background: url('/background/{{bg_img}}') center center no-repeat fixed;
+            background-size: cover;
+            filter: blur(20px) brightness(0.7) saturate(1.5);
+        }
+        .main-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1;
+            background: url('/background/{{bg_img}}') center center no-repeat fixed;
+            background-size: contain;
+            background-color: transparent;
+            pointer-events: none; /* ensures clicks go through */
+        }
+        #centerbox {
+            background: rgba(0,0,0,0.5);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 1;
+            position: relative;
+        }
+        input[type="number"] {
+            font-size: 2em;
+            width: 200px;
+            text-align: center;
+        }
+        button {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        video {
+            width: 80vw;
+            max-width: 1200px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px #55075c;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-bg"></div>
+    <!-- Total Videos Display (top-left corner) -->
+    <div id="video-count" style="position:absolute;top:20px;left:20px;z-index:10;background:rgba(0,0,0,0.6);color:#fff;padding:10px 18px;border-radius:12px;font-size:1.2em;">
+        Videos: {{total_videos}}
+    </div>
+    <div id="centerbox">
+        {% if video %}
+            <video id="player" controls autoplay onended="window.location='/'">
+                <source src="/video/{{video}}" type="video/mp4">
+                <source src="/video/{{video}}" type="video/webm">
+                <source src="/video/{{video}}" type="video/ogg">
+                Your browser does not support the video tag.
+            </video>
+            <!-- Stop button at right bottom corner -->
+            <button id="stop-btn" style="position:fixed;right:32px;bottom:32px;z-index:20;background:#7d2bc0;color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:2em;box-shadow:0 0 10px #000;cursor:pointer;">
+                &#9632;
+            </button>
+            <script>
+                document.getElementById('stop-btn').onclick = function() {
+                    window.location.href = '/';
+                };
+            </script>
+        {% else %}
+            <form method="post">
+                <h1 style="color:rgb(255, 255, 255);">Número da música</h1>
+                <input type="text" name="song" pattern="\d*" maxlength="5" required autofocus style="text-align:center; font-size:4em; width:250px;">
+                <br>
+                <button type="submit" style="background: #9b2cb1; color: #fff; border: none; border-radius: 15%; width: 200px; height: 56px; font-size: 1.5em; box-shadow: 0 0 10px #000; cursor: pointer;">
+                    Bota pra cantar!
+                </button>
+            </form>
+        {% endif %}
+    </div>
+    <a href="/setup_video_dir" title="Setup Video Directory" style="position:absolute;top:20px;right:20px;z-index:10;text-decoration:none;">
+        <button style="background: #55075c; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            <img src="/static/setup_icon.png" alt="Setup" width="24" height="24" style="display:block;">
+        </button>
+    </a>
+</body>
+</html>
