@@ -1,6 +1,6 @@
 [project]
 name = "karoloke"
-version = "0.1.0"
+version = "1.0.0"
 description = "A simple karaoke framework to your party!"
 authors = [
     {name = "Antonio Senra",email = "acsenrafilho@gmail.com"}
@@ -54,3 +54,6 @@ docs = "mkdocs serve"
 pre_test = "task lint"
 test = "pytest -v -x --cov=karoloke --cov-report=html"
 post_test = "coverage html"
+
+[tool.poetry.scripts]
+karoloke = "karoloke.start_karaoke:main"

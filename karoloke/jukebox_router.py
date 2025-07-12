@@ -7,14 +7,14 @@ from flask import (
     request,
     send_from_directory,
 )
-from jukebox_controller import get_background_img, get_video_file
-from settings import (
+
+from karoloke.jukebox_controller import get_background_img, get_video_file
+from karoloke.settings import (
     BACKGROUND_DIR,
     PLAYER_TEMPLATE,
     VIDEO_DIR,
     VIDEO_PATH_SETUP_TEMPLATE,
 )
-
 from karoloke.utils import collect_playlist
 
 app = Flask(__name__)
