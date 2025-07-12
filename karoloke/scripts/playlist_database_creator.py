@@ -19,7 +19,6 @@ from karoloke.scripts.playlist_schema import PlaylistItem
 load_dotenv()
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-SCHEMA_PATH = Path(__file__).parent / 'playlist_schema.json'
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 OUTPUT_PATH = Path(__file__).parent / f'playlist_output_{timestamp}.json'
 
