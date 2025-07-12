@@ -25,8 +25,13 @@ app = Flask(__name__)
 playlist_path = os.path.join(
     os.path.dirname(__file__), 'static', 'playlist.json'
 )
-with open(playlist_path, 'r') as f:
-    playlist_data = json.load(f)
+try:
+    with open(playlist_path, 'r') as f:
+        playlist_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    # If the file doesn't exist or is invalid, start with an empty playlist.
+    # This makes the app more resilient.
+    playlist_data = []
 
 
 @app.route('/', methods=['GET', 'POST'])

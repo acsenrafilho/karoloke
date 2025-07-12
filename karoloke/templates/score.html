@@ -78,6 +78,8 @@
     </div>
     <audio id="score-audio" preload="auto"></audio>
     <script>
+        const REDIRECT_DELAY_MS = 7000; // Delay before redirecting after score reveal (ms)
+        const SCORE_REVEAL_DELAY_MS = 9000; // Duration of score animation before revealing final score (ms)
         const audio = document.getElementById('score-audio');
         audio.src = '/static/score_bg_audio.mp3';
         audio.play().catch(() => {
@@ -128,8 +130,8 @@
             // Redirect after audio
             setTimeout(() => {
                 window.location.href = '/';
-            }, 7000);
-        }, 9000);
+            }, REDIRECT_DELAY_MS);
+        }, SCORE_REVEAL_DELAY_MS);
     </script>
 </body>
 </html>
