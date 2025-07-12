@@ -22,7 +22,6 @@ dependencies = [
 ]
 
 
-
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -34,6 +33,13 @@ taskipy = "^1.14.1"
 pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
 
+
+[tool.poetry.group.doc.dependencies]
+mkdocs-material = "^9.6.15"
+mkdocstrings = "^0.29.1"
+mkdocstrings-python = "^1.16.12"
+pymdown-extensions = "^10.16"
+
 [tool.blue]
 line-length = 79
 
@@ -44,6 +50,7 @@ line_length = 79
 [tool.taskipy.tasks]
 lint = "blue . && isort . --check"
 lint-check = "blue --check . && isort --check ."
+docs = "mkdocs serve"
 pre_test = "task lint"
 test = "pytest -v -x --cov coverage=html"
 post_test = "coverage html"
