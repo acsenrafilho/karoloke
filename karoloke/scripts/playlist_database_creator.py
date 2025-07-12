@@ -22,27 +22,6 @@ SCHEMA_PATH = Path(__file__).parent / 'playlist_schema.json'
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 OUTPUT_PATH = Path(__file__).parent / f'playlist_output_{timestamp}.json'
 
-# # Gemini API call
-# def call_gemini_api(pdf_text: str, schema: dict) -> dict:
-#     client = genai.Client(api_key=GEMINI_API_KEY)
-#     prompt = (
-#         "Interpret the following PDF text and organize the data as a JSON structure. Take care to not mix the table rows, because each row represents a single JSON input in the structure. "
-#         "Use this JSON schema: " + json.dumps(schema) + "\nPDF text:\n" + pdf_text
-#     )
-#     console = Console()
-#     with console.status("[bold green]Consultando Gemini API...[/]", spinner="dots"):
-#         response = client.models.generate_content(
-#             model="gemini-2.5-flash",
-#             contents=prompt,
-#             config={"temperature": 0}
-#         )
-#     try:
-#         result_json = json.loads(response.text)
-#     except Exception:
-#         result_json = {"error": "Could not parse Gemini response as JSON", "raw": response.text}
-#     return result_json
-
-
 def call_gemini_api_with_pdf(pdf_path: str) -> dict:
     """
     Calls Gemini API with the actual PDF file and playlist_schema.
@@ -90,16 +69,6 @@ def call_gemini_api_with_pdf(pdf_path: str) -> dict:
     except Exception:
         result_json = {'error': 'Could not parse Gemini response as JSON', 'raw': str(response)}
     return result_json
-
-
-# def read_pdf_pages(pdf_path: str, page_range: Tuple[int, int]) -> str:
-#     doc = fitz.open(pdf_path)
-#     start, end = page_range
-#     text = ''
-#     for page_num in range(start, end + 1):
-#         page = doc.load_page(page_num - 1)  # PyMuPDF is 0-indexed
-#         text += page.get_text()
-#     return text
 
 
 def main(pdf_path: str):
