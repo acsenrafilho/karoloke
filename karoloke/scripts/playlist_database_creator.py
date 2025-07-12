@@ -12,6 +12,7 @@ from google import genai
 from google.genai import types
 from rich import print
 from rich.console import Console
+from karoloke.scripts.playlist_schema import PlaylistItem
 
 # Load environment variables
 load_dotenv()
@@ -42,21 +43,9 @@ OUTPUT_PATH = Path(__file__).parent / f'playlist_output_{timestamp}.json'
 #     return result_json
 
 
-def call_gemini_api_with_pdf(pdf_path: str, schema: dict) -> dict:
+def call_gemini_api_with_pdf(pdf_path: str) -> dict:
     """
-    Calls Gemini API with the actual PDF file and schema.
-
-    Parameters
-    ----------
-    pdf_path : str
-        Path to the PDF file.
-    schema : dict
-        JSON schema for the playlist.
-
-    Returns
-    -------
-    dict
-        Gemini API response as a JSON structure.
+    Calls Gemini API with the actual PDF file and playlist_schema.
     """
     client = genai.Client(api_key=GEMINI_API_KEY)
     prompt = (
@@ -83,38 +72,41 @@ def call_gemini_api_with_pdf(pdf_path: str, schema: dict) -> dict:
             config={
                 'temperature': 0,
                 'response_mime_type': 'application/json',
-                'response_schema': schema,
+                'response_schema': list[PlaylistItem],
             },
         )
     try:
-        result_json = json.loads(response.text)
+        # Try to extract the text from the Gemini response
+        result_text = None
+        if hasattr(response, 'candidates') and response.candidates:
+            content = getattr(response.candidates[0], 'content', None)
+            if content and hasattr(content, 'parts'):
+                parts = content.parts
+                if parts and hasattr(parts[0], 'text'):
+                    result_text = parts[0].text
+        if not result_text:
+            result_text = getattr(response, 'text', None)
+        result_json = json.loads(result_text) if result_text else {'error': 'No response text', 'raw': str(response)}
     except Exception:
-        result_json = {
-            'error': 'Could not parse Gemini response as JSON',
-            'raw': response.text,
-        }
+        result_json = {'error': 'Could not parse Gemini response as JSON', 'raw': str(response)}
     return result_json
 
 
-def read_pdf_pages(pdf_path: str, page_range: Tuple[int, int]) -> str:
-    doc = fitz.open(pdf_path)
-    start, end = page_range
-    text = ''
-    for page_num in range(start, end + 1):
-        page = doc.load_page(page_num - 1)  # PyMuPDF is 0-indexed
-        text += page.get_text()
-    return text
+# def read_pdf_pages(pdf_path: str, page_range: Tuple[int, int]) -> str:
+#     doc = fitz.open(pdf_path)
+#     start, end = page_range
+#     text = ''
+#     for page_num in range(start, end + 1):
+#         page = doc.load_page(page_num - 1)  # PyMuPDF is 0-indexed
+#         text += page.get_text()
+#     return text
 
 
-def main(pdf_path: str, page_range: Tuple[int, int]):
+def main(pdf_path: str):
     print('Starting the Playlist Database Creator...')
-
-    with open(SCHEMA_PATH, 'r') as f:
-        schema = json.load(f)
-
-    # Call GeminiAPI with PDF file
+    # Call GeminiAPI with PDF file and playlist_schema
     print('Calling Gemini API with PDF file...', end='')
-    result_json = call_gemini_api_with_pdf(pdf_path, schema)
+    result_json = call_gemini_api_with_pdf(pdf_path)
     print(' done.')
 
     # Save output
@@ -124,12 +116,10 @@ def main(pdf_path: str, page_range: Tuple[int, int]):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 2:
         print(
-            'Usage: python playlist_database_creator.py <pdf_path> <start_page> <end_page>'
+            'Usage: python playlist_database_creator.py <pdf_path>'
         )
         sys.exit(1)
     pdf_path = sys.argv[1]
-    start_page = int(sys.argv[2])
-    end_page = int(sys.argv[3])
-    main(pdf_path, (start_page, end_page))
+    main(pdf_path)
