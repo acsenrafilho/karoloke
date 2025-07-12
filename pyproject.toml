@@ -58,7 +58,7 @@ lint = "blue . && isort ."
 lint-check = "blue --check . && isort --check ."
 docs = "mkdocs serve"
 pre_test = "task lint"
-test = "pytest -v -x --cov=karoloke --cov-report=html"
+test = "pytest --ignore-glob='./karoloke/scripts/*.py' -v -x --cov=karoloke --cov-report=html --disable-warnings"
 post_test = "coverage html"
 
 [tool.poetry.scripts]
