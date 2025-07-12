@@ -3,13 +3,21 @@ import random
 
 from karoloke.settings import VIDEO_FORMATS
 
+
 def get_background_img(background_dir: str = 'backgrounds'):
-    images = [f for f in os.listdir(background_dir) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif'))]
+    images = [
+        f
+        for f in os.listdir(background_dir)
+        if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif'))
+    ]
     if not images:
-        raise FileNotFoundError("No background images found in the 'background' directory.")
+        raise FileNotFoundError(
+            "No background images found in the 'background' directory."
+        )
 
     if images:
         return random.choice(images)
+
 
 def get_video_file(song_num, video_dir):
     video_file = None

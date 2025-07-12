@@ -1,10 +1,22 @@
-from flask import Flask, render_template_string, request, send_from_directory, render_template
+from flask import (
+    Flask,
+    render_template_string,
+    request,
+    send_from_directory,
+    render_template,
+)
 import os
-from settings import BACKGROUND_DIR, VIDEO_DIR, PLAYER_TEMPLATE, VIDEO_PATH_SETUP_TEMPLATE
+from settings import (
+    BACKGROUND_DIR,
+    VIDEO_DIR,
+    PLAYER_TEMPLATE,
+    VIDEO_PATH_SETUP_TEMPLATE,
+)
 from jukebox_controller import get_background_img, get_video_file
 from karoloke.utils import collect_playlist
 
 app = Flask(__name__)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -18,21 +30,26 @@ def index():
             song_num = request.form.get('song')
             if song_num:
                 video = get_video_file(song_num, VIDEO_DIR)
-            
+
             if video:
                 stop_recurring = False
 
     video_files = collect_playlist(VIDEO_DIR)
     total_videos = len(video_files)
-    return render_template(PLAYER_TEMPLATE, bg_img=bg_img, video=video, total_videos=total_videos)
+    return render_template(
+        PLAYER_TEMPLATE, bg_img=bg_img, video=video, total_videos=total_videos
+    )
+
 
 @app.route('/background/<path:filename>')
 def background(filename):
     return send_from_directory(BACKGROUND_DIR, filename)
 
+
 @app.route('/video/<path:filename>')
 def video(filename):
     return send_from_directory(VIDEO_DIR, filename)
+
 
 @app.route('/setup_video_dir', methods=['GET', 'POST'])
 def setup_video_dir():

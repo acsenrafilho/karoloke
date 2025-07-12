@@ -14,7 +14,7 @@
 - Use `pytest` for running tests and generating coverage reports.
 - When creating commit messages, use the following prefixes:
   - `ENH:` for new features and enhancements
-  - `BUG:` for bug fixes in general and correting broken code
+  - `BUG:` for bug fixes in general and correcting broken code
   - `DOC:` for documentation changes
   - `STY:` for formatting and code style changes (not affecting code logic)
   - `TEST:` for adding or updating tests
