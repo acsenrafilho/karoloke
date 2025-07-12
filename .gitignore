@@ -1,9 +1,11 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python
-# Edit at https://www.toptal.com/developers/gitignore?templates=python
+# VSCode
+.vscode/*
 
-###Project Specific###
+#mp4 files
+music_list/*
 *.mp4
-*.Mp4
+*.ogg
+*.webm
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
