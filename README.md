@@ -1,6 +1,6 @@
 # Karol-Oke
 
-![Project Logo](docs/assets/karoloke-favicon-purple.svg)
+![Project Logo](docs/assets/karoloke-logo.png)
 
 [![CI Status](https://github.com/acsentrafilho/karoloke/actions/workflows/ci.yml/badge.svg)](https://github.com/acsentrafilho/karoloke/actions)
 [![Issues](https://img.shields.io/github/issues/acsentrafilho/karoloke)](https://github.com/acsentrafilho/karoloke/issues)
@@ -25,7 +25,10 @@ A simple Karaoke framework to make your party fun and easy!
   karoloke
   ```
 - The server will start locally.
-- Setup your videos database path (supports: `.mp4`, `.webm`, `.ogg`).
+- Setup your videos database path by simply informing the diretory full path into the settings button (up-right corner) (supports: `.mp4`, `.webm`, `.ogg`).
+
+- The karaoke interface runs in your web browser (Chrome, Firefox, or similar) using an embedded web player for seamless playback.
+- Simply open the provided local URL after starting the server to access the karaoke experience.
 
 ## Documentation
 
