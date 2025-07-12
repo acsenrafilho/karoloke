@@ -36,7 +36,7 @@ jobs:
         run: poetry run task lint-check
 
       - name: Run project tests
-        run: poetry run task test --cov-report=xml'
+        run: poetry run task test --cov-report=xml
 
       - name: Show-up test coverage (codecov)
         uses: codecov/codecov-action@v4
@@ -73,7 +73,7 @@ jobs:
         run: poetry run task lint-check
 
       - name: Run project tests
-        run: poetry run task test --cov-report=xml'
+        run: poetry run task test --cov-report=xml
 
       - name: Show-up test coverage (codecov)
         uses: codecov/codecov-action@v4
@@ -107,7 +107,7 @@ jobs:
         run: poetry run task lint-check
 
       - name: Run project tests
-        run: poetry run task test --cov-report=xml'
+        run: poetry run task test --cov-report=xml
 
       - name: Show-up test coverage (codecov)
         uses: codecov/codecov-action@v4
