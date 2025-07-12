@@ -1,0 +1,59 @@
+[project]
+name = "karoloke"
+version = "1.0.0"
+description = "A simple karaoke framework to your party!"
+authors = [
+    {name = "Antonio Senra",email = "acsenrafilho@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Games/Entertainment",
+    "Topic :: Multimedia :: Video :: Display",
+    "Topic :: Multimedia :: Sound/Audio :: Players",
+    "License :: OSI Approved :: MIT License",    
+]
+
+requires-python = ">=3.9,<4.0"
+dependencies = [
+    "flask (>=3.1.1,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+blue = "^0.9.1"
+isort = "^6.0.1"
+taskipy = "^1.14.1"
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+
+
+[tool.poetry.group.doc.dependencies]
+mkdocs-material = "^9.6.15"
+mkdocstrings = "^0.29.1"
+mkdocstrings-python = "^1.16.12"
+pymdown-extensions = "^10.16"
+
+[tool.blue]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+
+[tool.taskipy.tasks]
+lint = "blue . && isort ."
+lint-check = "blue --check . && isort --check ."
+docs = "mkdocs serve"
+pre_test = "task lint"
+test = "pytest -v -x --cov=karoloke --cov-report=html"
+post_test = "coverage html"
+
+[tool.poetry.scripts]
+karoloke = "karoloke.start_karaoke:main"

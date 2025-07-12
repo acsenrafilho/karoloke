@@ -1,0 +1,7 @@
+MENU_BACKGROUND_DB = './karoloke/backgrounds'
+MUSIC_DB = './music_tmp'
+SCORE_DB = './karoloke/scores_videos'
+WND_NAME = 'Karol-Oke'
+# MUSIC_BAR = './overlay/player_bar.png'
+# ICONS_SET = './karoloke/icons/'
+SCORE_BACKGROUND = './karoloke/score_backgrounds'
