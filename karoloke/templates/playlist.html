@@ -83,24 +83,6 @@
         </tbody>
     </table>
     <script>
-        // Load playlist JSON from static folder
-        fetch('/static/playlist.json')
-            .then(response => response.json())
-            .then(data => {
-                const tbody = document.getElementById('playlist-body');
-                tbody.innerHTML = '';
-                data.forEach(video => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${video.filename || ''}</td>
-                        <td>${video.artist || ''}</td>
-                        <td>${video.title || ''}</td>
-                        <td>${video.part || ''}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            });
-
         // Filter function for each column
         function filterTable(colIdx) {
             const table = document.getElementById('playlist-table');
