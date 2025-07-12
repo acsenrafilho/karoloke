@@ -12,6 +12,7 @@ from google import genai
 from google.genai import types
 from rich import print
 from rich.console import Console
+
 from karoloke.scripts.playlist_schema import PlaylistItem
 
 # Load environment variables
@@ -21,6 +22,7 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 SCHEMA_PATH = Path(__file__).parent / 'playlist_schema.json'
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 OUTPUT_PATH = Path(__file__).parent / f'playlist_output_{timestamp}.json'
+
 
 def call_gemini_api_with_pdf(pdf_path: str) -> dict:
     """
@@ -65,9 +67,16 @@ def call_gemini_api_with_pdf(pdf_path: str) -> dict:
                     result_text = parts[0].text
         if not result_text:
             result_text = getattr(response, 'text', None)
-        result_json = json.loads(result_text) if result_text else {'error': 'No response text', 'raw': str(response)}
+        result_json = (
+            json.loads(result_text)
+            if result_text
+            else {'error': 'No response text', 'raw': str(response)}
+        )
     except Exception:
-        result_json = {'error': 'Could not parse Gemini response as JSON', 'raw': str(response)}
+        result_json = {
+            'error': 'Could not parse Gemini response as JSON',
+            'raw': str(response),
+        }
     return result_json
 
 
@@ -86,9 +95,7 @@ def main(pdf_path: str):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print(
-            'Usage: python playlist_database_creator.py <pdf_path>'
-        )
+        print('Usage: python playlist_database_creator.py <pdf_path>')
         sys.exit(1)
     pdf_path = sys.argv[1]
     main(pdf_path)

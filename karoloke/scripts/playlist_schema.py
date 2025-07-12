@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class PlaylistItem(BaseModel):
     """
     Represents a karaoke playlist item.
@@ -15,6 +16,7 @@ class PlaylistItem(BaseModel):
     part : str
         Song part.
     """
+
     filename: str
     artist: str
     title: str
