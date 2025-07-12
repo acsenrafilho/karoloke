@@ -1,5 +1,8 @@
 #mp4 files
 music_list/*
+*.mp4
+*.ogg
+*.webm
 
 # VSCode
 .vscode
