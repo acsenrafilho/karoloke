@@ -1,18 +1,20 @@
+import os
+
 from flask import (
     Flask,
+    render_template,
     render_template_string,
     request,
     send_from_directory,
-    render_template,
-)
-import os
-from settings import (
-    BACKGROUND_DIR,
-    VIDEO_DIR,
-    PLAYER_TEMPLATE,
-    VIDEO_PATH_SETUP_TEMPLATE,
 )
 from jukebox_controller import get_background_img, get_video_file
+from settings import (
+    BACKGROUND_DIR,
+    PLAYER_TEMPLATE,
+    VIDEO_DIR,
+    VIDEO_PATH_SETUP_TEMPLATE,
+)
+
 from karoloke.utils import collect_playlist
 
 app = Flask(__name__)

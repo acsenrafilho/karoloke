@@ -1,7 +1,7 @@
 [project]
 name = "karoloke"
 version = "0.1.0"
-description = "A simple karoke framework to your party!"
+description = "A simple karaoke framework to your party!"
 authors = [
     {name = "Antonio Senra",email = "acsenrafilho@gmail.com"}
 ]
@@ -48,7 +48,7 @@ profile = "black"
 line_length = 79
 
 [tool.taskipy.tasks]
-lint = "blue . && isort . --check"
+lint = "blue . && isort ."
 lint-check = "blue --check . && isort --check ."
 docs = "mkdocs serve"
 pre_test = "task lint"

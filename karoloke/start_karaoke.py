@@ -1,4 +1,5 @@
 import os
+
 from jukebox_router import app
 from settings import BACKGROUND_DIR, VIDEO_DIR
 

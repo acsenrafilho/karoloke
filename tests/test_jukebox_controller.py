@@ -1,9 +1,10 @@
-import pytest
 import os
+import pathlib
 import random
 
+import pytest
+
 from karoloke.jukebox_controller import get_background_img
-import pathlib
 
 BACKGROUND_FOLDER = os.path.join(
     pathlib.Path(__file__).parents[1], 'karoloke', 'backgrounds'
