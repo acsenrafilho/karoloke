@@ -7,6 +7,15 @@ authors = [
 ]
 license = {text = "MIT"}
 readme = "README.md"
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Games/Entertainment",
+    "Topic :: Multimedia :: Video :: Display",
+    "Topic :: Multimedia :: Sound/Audio :: Players",
+    "License :: OSI Approved :: MIT License",    
+]
+
 requires-python = ">=3.9,<4.0"
 dependencies = [
     "flask (>=3.1.1,<4.0.0)"
@@ -30,9 +39,11 @@ line-length = 79
 
 [tool.isort]
 profile = "black"
+line_length = 79
 
 [tool.taskipy.tasks]
 lint = "blue . && isort . --check"
 lint-check = "blue --check . && isort --check ."
-
+pre_test = "task lint"
 test = "pytest -v -x --cov coverage=html"
+post_test = "coverage html"

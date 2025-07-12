@@ -1,0 +1,53 @@
+site_name: karoloke
+repo_url: https://github.com/acsenrafilho/karoloke
+repo_name: acsenrafilho/karoloke
+edit_uri: tree/main/docs
+
+theme:
+  name: material
+  language: pt-BR
+  logo: assets/karoloke-favicon-white.svg
+  favicon: assets/karoloke-favicon-purple.svg
+  palette:
+    scheme: default
+    primary: purple
+    accent: deep orange
+  font:
+    text: Merienda
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - content.code.copy
+    - content.footnote.tooltips
+    - navigation.instant
+    - navigation.instant.progress
+    - naigation.tabs
+    - navigation.sections
+    - navigation.expand
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  # - pymdownx.superfences:
+  #     custom_fences:
+  #       - name: mermaid
+  #         class: mermaid
+  #         format: !!python/name:pymdownx.superfences.fence_code_format
+  - footnotes
+
+# extra_css:
+#   - stylesheets/extra.css
+
+nav:
+  - 'index.md'
+  - 'getting_started.md'
+
+plugins:
+  - search
+  - tags:
+      enabled: true
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [karoloke]
