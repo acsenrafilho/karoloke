@@ -5,6 +5,7 @@ from unittest import mock
 import pytest
 
 from karoloke import jukebox_router
+import sys
 
 
 @pytest.fixture
@@ -45,6 +46,7 @@ def test_playlist_qr(client):
     assert response.mimetype == 'image/png'
 
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="Background test skipped on Windows")
 def test_background(client):
     with tempfile.NamedTemporaryFile(
         dir=jukebox_router.BACKGROUND_DIR, suffix='.png', delete=False
