@@ -50,11 +50,12 @@ def test_background(client):
         dir=jukebox_router.BACKGROUND_DIR, suffix='.png', delete=False
     ) as f:
         fname = os.path.basename(f.name)
+        temp_file_name = f.name
     try:
         response = client.get(f'/background/{fname}')
         assert response.status_code == 200
     finally:
-        os.remove(f.name)
+        os.remove(temp_file_name)
 
 
 def test_video(client):
