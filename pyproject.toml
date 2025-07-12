@@ -1,0 +1,38 @@
+[project]
+name = "karoloke"
+version = "0.1.0"
+description = "A simple karoke framework to your party!"
+authors = [
+    {name = "Antonio Senra",email = "acsenrafilho@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.9,<4.0"
+dependencies = [
+    "flask (>=3.1.1,<4.0.0)"
+]
+
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+blue = "^0.9.1"
+isort = "^6.0.1"
+taskipy = "^1.14.1"
+pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
+
+[tool.blue]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+
+[tool.taskipy.tasks]
+lint = "blue . && isort . --check"
+lint-check = "blue --check . && isort --check ."
+
+test = "pytest -v -x --cov coverage=html"
