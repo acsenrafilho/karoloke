@@ -62,6 +62,9 @@ def test_background(client):
         os.remove(temp_file_name)
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('win'), reason='Background test skipped on Windows'
+)
 def test_video(client):
     with tempfile.NamedTemporaryFile(
         dir=jukebox_router.VIDEO_DIR, suffix='.mp4', delete=False
