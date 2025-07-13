@@ -70,11 +70,12 @@ def test_video(client):
         dir=jukebox_router.VIDEO_DIR, suffix='.mp4', delete=False
     ) as f:
         fname = os.path.basename(f.name)
+        temp_file_name = f.name
     try:
         response = client.get(f'/video/{fname}')
         assert response.status_code == 200
     finally:
-        os.remove(f.name)
+        os.remove(temp_file_name)
 
 
 def test_setup_video_dir_get(client):

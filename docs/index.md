@@ -15,7 +15,7 @@
 To install Karol-Oke, use pip:
 
 ```bash
-pip install karolke
+pip install karoloke
 ```
 
 ## Quick Start

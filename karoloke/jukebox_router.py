@@ -42,13 +42,7 @@ def index():
         song_num = request.form.get('song')
         if song_num:
             video = get_video_file(song_num, VIDEO_DIR)
-    total_videos = len(
-        [
-            f
-            for f in os.listdir(VIDEO_DIR)
-            if f.lower().endswith(('.mp4', '.webm', '.ogg'))
-        ]
-    )
+    total_videos = len(collect_playlist(VIDEO_DIR))
     playlist_url = url_for('playlist')
     playlist_qr_url = url_for('playlist_qr')
     return render_template(
