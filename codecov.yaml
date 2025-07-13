@@ -3,9 +3,10 @@ coverage:
     patch:
       default:
         target: 80%
-    project: #add everything under here, more options at https://docs.codecov.com/docs/commit-status
+    project:
       default:
-        # basic
-        target: 80% #default
+        target: 80%
         threshold: 0%
-        base: auto 
+        base: auto
+  ignore:
+    - "scripts/*"
