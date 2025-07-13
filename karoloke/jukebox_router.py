@@ -1,11 +1,14 @@
+import io
+import json
 import os
 
+import qrcode
 from flask import (
     Flask,
     render_template,
-    render_template_string,
     request,
     send_from_directory,
+    url_for,
 )
 
 from karoloke.jukebox_controller import get_background_img, get_video_file
@@ -19,28 +22,60 @@ from karoloke.utils import collect_playlist
 
 app = Flask(__name__)
 
+playlist_path = os.path.join(
+    os.path.dirname(__file__), 'static', 'playlist.json'
+)
+try:
+    with open(playlist_path, 'r') as f:
+        playlist_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    # If the file doesn't exist or is invalid, start with an empty playlist.
+    # This makes the app more resilient.
+    playlist_data = []
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     bg_img = get_background_img(BACKGROUND_DIR)
-    if not bg_img or not os.path.isfile(os.path.join(BACKGROUND_DIR, bg_img)):
-        bg_img = None
     video = None
     if request.method == 'POST':
-        stop_recurring = True
-        while stop_recurring:
-            song_num = request.form.get('song')
-            if song_num:
-                video = get_video_file(song_num, VIDEO_DIR)
-
-            if video:
-                stop_recurring = False
-
-    video_files = collect_playlist(VIDEO_DIR)
-    total_videos = len(video_files)
+        song_num = request.form.get('song')
+        if song_num:
+            video = get_video_file(song_num, VIDEO_DIR)
+    total_videos = len(collect_playlist(VIDEO_DIR))
+    playlist_url = url_for('playlist')
+    playlist_qr_url = url_for('playlist_qr')
     return render_template(
-        PLAYER_TEMPLATE, bg_img=bg_img, video=video, total_videos=total_videos
+        PLAYER_TEMPLATE,
+        bg_img=bg_img,
+        video=video,
+        total_videos=total_videos,
+        playlist_qr_url=playlist_qr_url,
     )
+
+
+@app.route('/playlist')
+def playlist():
+    # Get available video files (filenames without extension)
+    video_files = set(
+        os.path.splitext(os.path.basename(f))[0]
+        for f in collect_playlist(VIDEO_DIR)
+    )
+    # Filter playlist to only those with a matching video file
+    filtered_playlist = [
+        row for row in playlist_data if row['filename'] in video_files
+    ]
+    return render_template('playlist.html', playlist=filtered_playlist)
+
+
+@app.route('/playlist_qr')
+def playlist_qr():
+    playlist_url = request.url_root.rstrip('/') + url_for('playlist')
+    img = qrcode.make(playlist_url)
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    buf.seek(0)
+    return app.response_class(buf.read(), mimetype='image/png')
 
 
 @app.route('/background/<path:filename>')
@@ -64,4 +99,10 @@ def setup_video_dir():
         return {'status': 'error', 'message': 'Invalid directory'}, 400
     # GET request: show the setup page
     background_img = get_background_img(BACKGROUND_DIR)
-    return render_template('video_path_setup.html', bg_img=background_img)
+    return render_template(VIDEO_PATH_SETUP_TEMPLATE, bg_img=background_img)
+
+
+@app.route('/score')
+def score():
+    bg_img = get_background_img(BACKGROUND_DIR)
+    return render_template('score.html', bg_img=bg_img)

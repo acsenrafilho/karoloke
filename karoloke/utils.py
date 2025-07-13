@@ -16,7 +16,7 @@ def collect_playlist(root_dir: str) -> list:
         root_dir (str): The root directory to search for video files.
 
     Returns:
-        list: A dictionay of paths to video files.
+        list: A list of paths to video files.
     """
     video_files = []
     for dirpath, _, filenames in os.walk(root_dir):
