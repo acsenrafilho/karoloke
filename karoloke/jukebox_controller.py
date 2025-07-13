@@ -26,7 +26,9 @@ def get_video_file(song_num, video_dir):
         # Recursively search for candidate in video_dir and subdirectories
         for root, _, files in os.walk(video_dir):
             if candidate in files:
-                video_file = os.path.relpath(os.path.join(root, candidate), video_dir)
+                video_file = os.path.relpath(
+                    os.path.join(root, candidate), video_dir
+                )
                 break
         if video_file:
             break
