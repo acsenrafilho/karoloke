@@ -26,6 +26,8 @@ def get_video_file(song_num, video_dir):
         if os.path.exists(os.path.join(video_dir, candidate)):
             video_file = candidate
             break
-    if os.path.exists(os.path.join(video_dir, video_file)):
-        return video_file
+
+    if video_file:
+        if os.path.exists(os.path.join(video_dir, video_file)):
+            return video_file
     return None

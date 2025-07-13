@@ -13,7 +13,7 @@ theme:
     primary: purple
     accent: deep orange
   font:
-    text: Merienda
+    text: Helvetica Neue
     code: Roboto Mono
   icon:
     repo: fontawesome/brands/github

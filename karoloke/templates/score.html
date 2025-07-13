@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Score</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            background: url('/background/{{bg_img}}') center center no-repeat fixed;
+            background-size: cover;
+            filter: blur(20px) brightness(0.7) saturate(1.5);
+        }
+        .main-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1;
+            background: url('/background/{{bg_img}}') center center no-repeat fixed;
+            background-size: contain;
+            background-color: transparent;
+            pointer-events: none;
+        }
+        #scorebox {
+            position: relative;
+            z-index: 2;
+            background: rgba(0,0,0,0.6);
+            border-radius: 24px;
+            padding: 48px 48px 32px 48px;
+            box-shadow: 0 0 32px #55075c;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #score {
+            font-size: 5em;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 32px;
+            text-shadow: 0 0 16px #55075c;
+        }
+        .gif-table {
+            display: grid;
+            grid-template-columns: repeat(3, 150px);
+            grid-template-rows: repeat(3, 150px);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .gif-table img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 16px;
+            box-shadow: 0 0 12px #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-bg"></div>
+    <div id="scorebox">
+        <div id="score">...</div>
+        <div class="gif-table" id="gif-table">
+            <!-- GIFs will be loaded here -->
+        </div>
+    </div>
+    <audio id="score-audio" preload="auto"></audio>
+    <script>
+        const REDIRECT_DELAY_MS = 7000; // Delay before redirecting after score reveal (ms)
+        const SCORE_REVEAL_DELAY_MS = 9000; // Duration of score animation before revealing final score (ms)
+        const audio = document.getElementById('score-audio');
+        audio.src = '/static/score_bg_audio.mp3';
+        audio.play().catch(() => {
+            // Optionally show a prompt to the user to click to enable audio
+            console.log('Autoplay blocked. User interaction required.');
+        });
+
+        // List of GIF URLs (replace with your own)
+        const gifUrls = [
+            "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdjFvem85emVmOTZrazd1NnMzM3EzZmtuejg4cGxkb3MyZ3pkemVnMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/143qWPF33HtSTK/giphy.gif",
+            "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+            "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif",
+            "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif",
+            "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZzZ4cnF0dnAxZHF5Z2ptMDJjczdyaWU3MTlhYTk2NnplYmJrcTJ2OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7qDRmFdvJ3Rk1wYw/giphy.gif",
+            "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXJkN3FldjNxbXNkN3Z5bHhjc2h0NW5wN2E4YmN5cjk4anV0OGh5YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ro4jmiZH0V2N2/giphy.gif",
+            "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMW1pajQ3Z3ByaWpwMnEwNWZyeTQzaHc1ZWN6MHUwODZ3MWRzN3Z6dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/blSTtZehjAZ8I/giphy.gif",
+            "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExeHRzdDNmMTM5aGpocnV0ZTR0ZXBzbzQ1YXJxbzRjY3c0aG5jdHM0eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/pa37AAGzKXoek/giphy.gif",
+            "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDlvcWh6eXA5MTZ1aDlzM250YTJ6eDA5ZXU1NXBobnE4eHcwMjN2dCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/vd7RtrKYy1Y1W/giphy.gif"
+        ];
+        // Shuffle and pick 9 random GIFs
+        // Shuffle GIFs without repetition (Fisher-Yates)
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        const shuffledGifs = shuffle([...gifUrls]);
+        const selectedGifs = shuffledGifs.slice(0, 9);
+        const gifTable = document.getElementById('gif-table');
+        selectedGifs.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            gifTable.appendChild(img);
+        });
+
+        // Score animation
+        const scoreElem = document.getElementById('score');
+        let finalScore = Math.floor(Math.random() * 26) + 75; // 75-100
+        let interval = setInterval(() => {
+            scoreElem.textContent = Math.floor(Math.random() * 26) + 75;
+        }, 80);
+        setTimeout(() => {
+            clearInterval(interval);
+            scoreElem.textContent = finalScore;
+            scoreElem.style.fontSize = '7em';
+            // Redirect after audio
+            setTimeout(() => {
+                window.location.href = '/';
+            }, REDIRECT_DELAY_MS);
+        }, SCORE_REVEAL_DELAY_MS);
+    </script>
+</body>
+</html>

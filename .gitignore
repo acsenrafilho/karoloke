@@ -1,11 +1,15 @@
 # VSCode
 .vscode/*
 
-#mp4 files
+#files
 music_list/*
 *.mp4
 *.ogg
 *.webm
+*.pdf
+
+#Scripts
+karoloke/scripts/*output*
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
