@@ -57,6 +57,65 @@
             border-radius: 20px;
             box-shadow: 0 0 20px #55075c;
         }
+        /* Playlist QR code styles */
+        #playlist-qr {
+            position: fixed;
+            left: 32px;
+            bottom: 32px;
+            z-index: 20;
+            width: 256px;
+            height: 256px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        #playlist-qr img {
+            width: 224px;
+            height: 224px;
+        }
+        #playlist-qr .qr-label {
+            margin-top: 12px;
+            color: #fff;
+            font-size: 1.6em;
+            text-align: center;
+        }
+        /* Stop button styles */
+        #stop-btn {
+            position: fixed;
+            right: 32px;
+            bottom: 32px;
+            z-index: 20;
+            background: #7d2bc0;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            font-size: 2em;
+            box-shadow: 0 0 10px #000;
+            cursor: pointer;
+        }
+        /* Setup button styles */
+        #setup-btn {
+            background: #55075c;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        #setup-btn img {
+            display: block;
+            width: 24px;
+            height: 24px;
+        }
     </style>
 </head>
 <body>
@@ -65,9 +124,9 @@
     <div id="video-count" style="position:absolute;top:20px;left:20px;z-index:10;background:rgba(0,0,0,0.6);color:#fff;padding:10px 18px;border-radius:12px;font-size:1.2em;">
         Videos: {{total_videos}}
     </div>
-    <div id="playlist-qr" style="position:fixed;left:32px;bottom:32px;z-index:20;width:256px;height:256px;background:rgba(0,0,0,0.7);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;">
-        <img src="{{ playlist_qr_url }}" alt="Playlist QR" style="width:224px;height:224px;" />
-        <div style="margin-top:12px;color:#fff;font-size:1.6em;text-align:center;">Acesse a playlist!</div>
+    <div id="playlist-qr">
+        <img src="{{ playlist_qr_url }}" alt="Playlist QR" />
+        <div class="qr-label">Acesse a playlist!</div>
     </div>
     <div id="centerbox">
         {% if video %}
@@ -78,9 +137,7 @@
                 Your browser does not support the video tag.
             </video>
             <!-- Stop button at right bottom corner -->
-            <button id="stop-btn" style="position:fixed;right:32px;bottom:32px;z-index:20;background:#7d2bc0;color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:2em;box-shadow:0 0 10px #000;cursor:pointer;">
-                &#9632;
-            </button>
+            <button id="stop-btn">&#9632;</button>
             <script>
                 // Hide QR code when video is playing
                 document.getElementById('playlist-qr').style.display = 'none';
@@ -104,8 +161,8 @@
         {% endif %}
     </div>
     <a href="/setup_video_dir" title="Setup Video Directory" style="position:absolute;top:20px;right:20px;z-index:10;text-decoration:none;">
-        <button style="background: #55075c; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-            <img src="/static/setup_icon.png" alt="Setup" width="24" height="24" style="display:block;">
+        <button id="setup-btn">
+            <img src="/static/setup_icon.png" alt="Setup" />
         </button>
     </a>
 </body>
