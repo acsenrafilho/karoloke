@@ -2,11 +2,14 @@
 
 ![Project Logo](docs/assets/karoloke-logo.png)
 
-[![CI Status](https://github.com/acsentrafilho/karoloke/actions/workflows/ci.yml/badge.svg)](https://github.com/acsentrafilho/karoloke/actions)
-[![Issues](https://img.shields.io/github/issues/acsentrafilho/karoloke)](https://github.com/acsentrafilho/karoloke/issues)
-[![Sponsor](https://img.shields.io/github/sponsors/acsentrafilho)](https://github.com/sponsors/acsentrafilho)
-[![Coverage Status](https://img.shields.io/codecov/c/github/acsentrafilho/karoloke)](https://codecov.io/gh/acsentrafilho/karoloke)
-[![Collaborators](https://img.shields.io/github/contributors/acsentrafilho/karoloke)](https://github.com/acsentrafilho/karoloke/graphs/contributors)
+[![CI for Develop Branch](https://github.com/acsenrafilho/karoloke/actions/workflows/ci_develop.yaml/badge.svg)](https://github.com/acsenrafilho/karoloke/actions/workflows/ci_develop.yaml)
+[![CI for Production Branch](https://github.com/acsenrafilho/karoloke/actions/workflows/ci_main.yaml/badge.svg)](https://github.com/acsenrafilho/karoloke/actions/workflows/ci_main.yaml)
+[![codecov](https://codecov.io/gh/acsenrafilho/karoloke/graph/badge.svg?token=1PL6N4BI2G)](https://codecov.io/gh/acsenrafilho/karoloke)
+![Python Versions](https://img.shields.io/badge/python-3.9%20|+-blue)
+![PyPI downloads](https://img.shields.io/pypi/dm/karoloke)
+[![Issues](https://img.shields.io/github/issues/acsenrafilho/karoloke)](https://github.com/acsenrafilho/karoloke/issues)
+![Contributors](https://img.shields.io/github/contributors/acsenrafilho/karoloke)
+[![GitHub Sponsor](https://img.shields.io/badge/Sponsor-❤️%20acsenrafilho-orange?logo=github)](https://github.com/sponsors/acsenrafilho)
 
 A simple Karaoke framework to make your party fun and easy!
 
