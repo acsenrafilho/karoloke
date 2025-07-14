@@ -37,3 +37,11 @@ def get_video_file(song_num, video_dir):
         # Return the relative path from video_dir
         return video_file
     return None
+
+
+def calculate_average_score(current_average, new_score):
+    if current_average == 0:
+        current_average = new_score
+    final_score = current_average + new_score
+
+    return int(final_score / 2)
