@@ -11,10 +11,15 @@ from flask import (
     url_for,
 )
 
-from karoloke.jukebox_controller import get_background_img, get_video_file
+from karoloke.jukebox_controller import (
+    calculate_average_score,
+    get_background_img,
+    get_video_file,
+)
 from karoloke.settings import (
     BACKGROUND_DIR,
     PLAYER_TEMPLATE,
+    SINGERS,
     VIDEO_DIR,
     VIDEO_PATH_SETUP_TEMPLATE,
 )
@@ -38,10 +43,14 @@ except (FileNotFoundError, json.JSONDecodeError):
 def index():
     bg_img = get_background_img(BACKGROUND_DIR)
     video = None
+    selected_singer = None
     if request.method == 'POST':
         song_num = request.form.get('song')
+        singer_name = request.form.get('singer')
         if song_num:
             video = get_video_file(song_num, VIDEO_DIR)
+        if singer_name:
+            selected_singer = singer_name
     total_videos = len(collect_playlist(VIDEO_DIR))
     playlist_url = url_for('playlist')
     playlist_qr_url = url_for('playlist_qr')
@@ -51,6 +60,8 @@ def index():
         video=video,
         total_videos=total_videos,
         playlist_qr_url=playlist_qr_url,
+        singers=list(SINGERS.values()),
+        selected_singer=selected_singer,
     )
 
 
@@ -106,3 +117,54 @@ def setup_video_dir():
 def score():
     bg_img = get_background_img(BACKGROUND_DIR)
     return render_template('score.html', bg_img=bg_img)
+
+
+@app.route('/singers', methods=['GET', 'POST'])
+def singers():
+    """
+    Handles displaying and adding singers.
+    """
+    bg_img = get_background_img(BACKGROUND_DIR)
+    error = None
+    success = None
+
+    if request.method == 'POST':
+        singer_name = request.form.get('nickname')
+        # Check for duplicate names
+        if singer_name and singer_name.strip():
+            if any(s['name'] == singer_name for s in SINGERS.values()):
+                error = 'Nome/apelido já cadastrado. Tente outro.'
+            else:
+                singer_position = len(SINGERS) + 1
+                SINGERS[singer_position] = {
+                    'name': singer_name,
+                    'average_score': 0,
+                    'songs_counter': 0,
+                }
+                success = f"Cantor(a) '{singer_name}' cadastrado com sucesso!"
+        else:
+            error = 'Nome/apelido é obrigatório.'
+
+    return render_template(
+        'singers.html',
+        bg_img=bg_img,
+        singers=list(SINGERS.values()),
+        error=error,
+        success=success,
+    )
+
+
+@app.route('/submit_score', methods=['POST'])
+def submit_score():
+    data = request.get_json()
+    score = data.get('score')
+    name = data.get('singer')
+    # Save the score into the SINGERS dictionary or process it as needed
+    for singer in SINGERS.values():
+        if singer['name'] == name:
+            singer['average_score'] = calculate_average_score(
+                singer.get('average_score', 0), score
+            )
+            singer['songs_counter'] += 1
+            break
+    return {'status': 'ok'}
