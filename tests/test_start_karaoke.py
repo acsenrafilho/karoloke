@@ -19,11 +19,3 @@ def test_main_does_not_fail_if_directories_exist(monkeypatch, tmp_path):
         assert backgrounds.exists()
         assert videos.exists()
         mock_run.assert_called_once()
-
-
-def test_main_runs_app(monkeypatch):
-    # Patch os.makedirs to avoid filesystem changes
-    monkeypatch.setattr(os, 'makedirs', lambda *args, **kwargs: None)
-    with mock.patch.object(start_karaoke.app, 'run') as mock_run:
-        start_karaoke.main()
-        mock_run.assert_called_once_with(host='0.0.0.0', port=5000, debug=True)

@@ -38,6 +38,7 @@
             background: rgba(0,0,0,0.5);
             padding: 40px;
             border-radius: 20px;
+            top: 10%;
             text-align: center;
             z-index: 1;
             position: relative;
@@ -46,6 +47,29 @@
             font-size: 2em;
             width: 200px;
             text-align: center;
+        }
+        /* Enhanced singer selector styles */
+        #singer-select {
+            font-size: 1.5em;
+            width: 250px;
+            margin-bottom: 18px;
+            text-align: center;
+            background: linear-gradient(90deg, #7d2bc0 0%, #55075c 100%);
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 0 10px #55075c;
+            padding: 12px 18px;
+            outline: none;
+            transition: box-shadow 0.2s, background 0.2s;
+        }
+        #singer-select:focus {
+            box-shadow: 0 0 18px #9b2cb1;
+            background: linear-gradient(90deg, #9b2cb1 0%, #7d2bc0 100%);
+        }
+        #singer-select option {
+            background: #55075c;
+            color: #fff;
         }
         button {
             font-size: 1.5em;
@@ -116,6 +140,57 @@
             width: 24px;
             height: 24px;
         }
+        /* Add Singer button styles */
+        #add-singer-btn {
+            background: #55075c;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        #add-singer-btn img {
+            display: block;
+            width: 24px;
+            height: 24px;
+        }
+        /* Ranking table styles */
+        #ranking-table {
+            position: fixed;
+            right: 32px;
+            bottom: 32px;
+            z-index: 30;
+            background: rgba(0,0,0,0.8);
+            border-radius: 18px;
+            padding: 24px 32px;
+            box-shadow: 0 0 24px #55075c;
+            min-width: 320px;
+            max-width: 400px;
+        }
+        #ranking-table h2 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 18px;
+            font-size: 1.4em;
+        }
+        #ranking-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #ranking-table th, #ranking-table td {
+            padding: 8px 12px;
+            text-align: left;
+        }
+        #ranking-table th {
+            color: #fff;
+            font-size: 1.1em;
+        }
+        #ranking-table td {
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -130,7 +205,7 @@
     </div>
     <div id="centerbox">
         {% if video %}
-            <video id="player" controls autoplay onended="window.location='/score'">
+            <video id="player" controls autoplay onended="window.location='/score?singer={{ selected_singer | urlencode }}'">
                 <source src="/video/{{video}}" type="video/mp4">
                 <source src="/video/{{video}}" type="video/webm">
                 <source src="/video/{{video}}" type="video/ogg">
@@ -152,18 +227,73 @@
             </script>
             <form method="post">
                 <h1 style="color:rgb(255, 255, 255);">Número da música</h1>
-                <input type="text" name="song" pattern="\d*" maxlength="5" required autofocus style="text-align:center; font-size:4em; width:250px;">
+                <input type="text" name="song" id="song-input" pattern="\d*" maxlength="5" required autofocus style="text-align:center; font-size:4em; width:250px;">
                 <br>
-                <button type="submit" style="background: #9b2cb1; color: #fff; border: none; border-radius: 15%; width: 200px; height: 56px; font-size: 1.5em; box-shadow: 0 0 10px #000; cursor: pointer;">
+                <label for="singer-select" style="color:#fff;font-size:1.0em;margin-top:18px;display:block;">Selecione o cantor(a):</label>
+                <select name="singer" id="singer-select">
+                    <option value="">-- Selecione --</option>
+                    {% for singer in singers %}
+                        <option value="{{ singer.name }}">{{ singer.name }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <button type="submit" id="sing-btn" style="background: #9b2cb1; color: #fff; border: none; border-radius: 15%; width: 200px; height: 56px; font-size: 1.5em; box-shadow: 0 0 10px #000; cursor: pointer; opacity: 0.5;" disabled>
                     Bota pra cantar!
                 </button>
             </form>
+            <script>
+                // Enable button only if both fields are filled
+                const songInput = document.getElementById('song-input');
+                const singerSelect = document.getElementById('singer-select');
+                const singBtn = document.getElementById('sing-btn');
+                function checkFields() {
+                    const enabled = songInput.value.trim() && singerSelect.value;
+                    singBtn.disabled = !enabled;
+                    singBtn.style.opacity = enabled ? '1' : '0.5';
+                }
+                songInput.addEventListener('input', checkFields);
+                singerSelect.addEventListener('change', checkFields);
+                checkFields();
+            </script>
+            <!-- Ranking Table (only when not playing video) -->
+            <div id="ranking-table" style="position:fixed;right:32px;bottom:32px;z-index:30;background:rgba(0,0,0,0.8);border-radius:18px;padding:24px 32px;box-shadow:0 0 24px #55075c;min-width:320px;max-width:400px;">
+                <h2 style="color:#fff;text-align:center;margin-bottom:18px;font-size:1.4em;">Ranking dos Cantores</h2>
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="color:#fff;font-size:1.1em;">
+                            <th style="padding:8px 12px;text-align:left;">Posição</th>
+                            <th style="padding:8px 12px;text-align:left;">Nome</th>
+                            <th style="padding:8px 12px;text-align:center;">Músicas</th>
+                            <th style="padding:8px 12px;text-align:center;">Score Médio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set sorted_singers = singers|sort(attribute='average_score', reverse=true) %}
+                        {% for singer in sorted_singers[:5] %}
+                        <tr>
+                            <td style="padding:8px 12px;">
+                                {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+                            </td>
+                            <td style="padding:8px 12px; color:#fff;">{{ singer.name }}</td>
+                            <td style="padding:8px 12px; text-align:center; color:#fff;">{{ singer.songs_counter }}</td>
+                            <td style="padding:8px 12px; text-align:center; color:#fff;">{{ singer.average_score }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
     </div>
-    <a href="/setup_video_dir" title="Setup Video Directory" style="position:absolute;top:20px;right:20px;z-index:10;text-decoration:none;">
+    <a href="/setup_video_dir" title="Configurar Pasta de Vídeos" style="position:absolute;top:20px;right:76px;z-index:10;text-decoration:none;">
         <button id="setup-btn">
             <img src="/static/setup_icon.png" alt="Setup" />
         </button>
     </a>
+    <a href="/singers" title="Adicionar Cantor(a)" style="position:absolute;top:20px;right:20px;z-index:10;text-decoration:none;">
+        <button id="add-singer-btn">
+            <img src="/static/singers_icon.png" alt="Singers" />
+        </button>
+    </a>
+    <!-- ...existing code... -->
 </body>
 </html>

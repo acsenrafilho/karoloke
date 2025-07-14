@@ -127,6 +127,16 @@
             clearInterval(interval);
             scoreElem.textContent = finalScore;
             scoreElem.style.fontSize = '7em';
+            // Send score and singer name to backend
+            const selectedSinger = "{{ request.args.get('singer', '') }}";
+            fetch('/submit_score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    singer: selectedSinger,
+                    score: finalScore
+                })
+            });
             // Redirect after audio
             setTimeout(() => {
                 window.location.href = '/';
