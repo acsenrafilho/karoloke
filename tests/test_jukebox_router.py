@@ -1,9 +1,14 @@
+import pyzbar.pyzbar as pyzbar
 import os
+import re
 import sys
 import tempfile
+from io import BytesIO
 from unittest import mock
 
 import pytest
+import qrcode
+from PIL import Image
 
 from karoloke import jukebox_router
 
@@ -44,6 +49,23 @@ def test_playlist_qr(client):
     response = client.get('/playlist_qr')
     assert response.status_code == 200
     assert response.mimetype == 'image/png'
+
+
+def test_playlist_qr_is_with_ip_address(client):
+    response = client.get('/playlist_qr')
+    assert response.status_code == 200
+
+    # Decode the QR code from the response PNG image
+    img = Image.open(BytesIO(response.data))
+    decoded = pyzbar.decode(img)
+    assert any(
+        d.type == 'QRCODE'
+        and (d.data.startswith(b'http://') or d.data.startswith(b'https://'))
+        for d in decoded
+    )
+    # Check if any decoded QR code contains an IP address pattern (http or https)
+    ip_pattern = re.compile(rb'https?://(\d{1,3}\.){3}\d{1,3}(:\d+)?')
+    assert any(ip_pattern.search(d.data) for d in decoded)
 
 
 @pytest.mark.skipif(
