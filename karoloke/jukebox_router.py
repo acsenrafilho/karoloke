@@ -99,9 +99,10 @@ def playlist_qr():
                 pass
             finally:
                 s.close()
-    except Exception:
+    except socket.gaierror:
         local_ip = 'localhost'
-    playlist_url = f"{request.scheme}://{local_ip}:{request.host.split(':')[-1]}{url_for('playlist')}"
+    port = request.environ.get('SERVER_PORT', request.host.split(':')[-1])
+    playlist_url = f"{request.scheme}://{local_ip}:{port}{url_for('playlist')}"
     img = qrcode.make(playlist_url)
     buf = io.BytesIO()
     img.save(buf, 'PNG')
