@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import socket
 
 import qrcode
 from flask import (
@@ -81,10 +82,29 @@ def playlist():
 
 @app.route('/playlist_qr')
 def playlist_qr():
-    playlist_url = request.url_root.rstrip('/') + url_for('playlist')
+    # Try to get the server's local IP address for the QR code
+
+    try:
+        hostname = socket.gethostname()
+        local_ip = socket.gethostbyname(hostname)
+        # If localhost, try to get a better IP
+        if local_ip.startswith('127.') or local_ip == 'localhost':
+            # Try to get the first non-localhost IP
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+                # doesn't have to be reachable
+                s.connect(('8.8.8.8', 80))
+                local_ip = s.getsockname()[0]
+            except Exception:
+                pass
+            finally:
+                s.close()
+    except Exception:
+        local_ip = 'localhost'
+    playlist_url = f"{request.scheme}://{local_ip}:{request.host.split(':')[-1]}{url_for('playlist')}"
     img = qrcode.make(playlist_url)
     buf = io.BytesIO()
-    img.save(buf, format='PNG')
+    img.save(buf, 'PNG')
     buf.seek(0)
     return app.response_class(buf.read(), mimetype='image/png')
 
