@@ -6,7 +6,9 @@ from io import BytesIO
 from unittest import mock
 
 import pytest
-import pyzbar.pyzbar as pyzbar
+
+if not sys.platform.startswith('darwin'):
+    import pyzbar.pyzbar as pyzbar
 from PIL import Image
 
 from karoloke import jukebox_router
