@@ -51,7 +51,8 @@ def test_playlist_qr(client):
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('darwin'), reason='QR code IP test skipped on macOS'
+    sys.platform.startswith('darwin'),
+    reason='QR code IP test skipped on macOS',
 )
 def test_playlist_qr_is_with_ip_address(client):
     response = client.get('/playlist_qr')
