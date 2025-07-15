@@ -19,3 +19,10 @@ def test_main_does_not_fail_if_directories_exist(monkeypatch, tmp_path):
         assert backgrounds.exists()
         assert videos.exists()
         mock_run.assert_called_once()
+
+
+def test_open_browser_opens_url(monkeypatch):
+    """Test that open_browser calls webbrowser.open_new with the correct URL."""
+    with mock.patch('webbrowser.open_new') as mock_open:
+        start_karaoke.open_browser()
+        mock_open.assert_called_once_with('http://localhost:5000/')

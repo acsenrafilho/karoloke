@@ -38,6 +38,7 @@ pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
 pymupdf = "^1.26.3"
 google-genai = "^1.25.0"
+pyzbar = "^0.1.9"
 
 
 [tool.poetry.group.doc.dependencies]

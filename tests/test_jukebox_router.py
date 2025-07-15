@@ -1,9 +1,15 @@
 import os
+import re
 import sys
 import tempfile
+from io import BytesIO
 from unittest import mock
 
 import pytest
+
+if not sys.platform.startswith('darwin'):
+    import pyzbar.pyzbar as pyzbar
+from PIL import Image
 
 from karoloke import jukebox_router
 
@@ -44,6 +50,23 @@ def test_playlist_qr(client):
     response = client.get('/playlist_qr')
     assert response.status_code == 200
     assert response.mimetype == 'image/png'
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith('darwin'),
+    reason='QR code IP test skipped on macOS',
+)
+def test_playlist_qr_is_with_ip_address(client):
+    response = client.get('/playlist_qr')
+    assert response.status_code == 200
+
+    # Decode the QR code from the response PNG image
+    img = Image.open(BytesIO(response.data))
+    decoded = pyzbar.decode(img)
+    ip_pattern = re.compile(rb'https?://(\d{1,3}\.){3}\d{1,3}(:\d+)?')
+    assert any(
+        d.type == 'QRCODE' and ip_pattern.search(d.data) for d in decoded
+    )
 
 
 @pytest.mark.skipif(
@@ -103,3 +126,48 @@ def test_score(client):
     response = client.get('/score')
     assert response.status_code == 200
     assert b'<html' in response.data
+
+
+def test_singers_get(client):
+    """Test GET request to /singers route returns singers page."""
+    response = client.get('/singers')
+    assert response.status_code == 200
+    assert b'<html' in response.data
+    assert b'Cantor' in response.data or b'Nome' in response.data
+
+
+def test_singers_post_valid(client):
+    """Test POST request to /singers with a valid new singer."""
+    # Remove any test singer if present
+    test_name = 'TestSinger'
+    # Ensure no duplicate
+    for k in list(jukebox_router.SINGERS.keys()):
+        if jukebox_router.SINGERS[k]['name'] == test_name:
+            del jukebox_router.SINGERS[k]
+    response = client.post('/singers', data={'nickname': test_name})
+    assert response.status_code == 200
+
+    # Clean up
+    for k in list(jukebox_router.SINGERS.keys()):
+        if jukebox_router.SINGERS[k]['name'] == test_name:
+            del jukebox_router.SINGERS[k]
+
+
+def test_singers_post_duplicate(client):
+    """Test POST request to /singers with a duplicate singer name."""
+    test_name = 'DuplicateSinger'
+    # Add singer manually
+    pos = len(jukebox_router.SINGERS) + 1
+    jukebox_router.SINGERS[pos] = {
+        'name': test_name,
+        'average_score': 0,
+        'songs_counter': 0,
+    }
+    response = client.post('/singers', data={'nickname': test_name})
+    assert response.status_code == 200
+
+
+def test_singers_post_empty_name(client):
+    """Test POST request to /singers with empty nickname."""
+    response = client.post('/singers', data={'nickname': ''})
+    assert response.status_code == 200
