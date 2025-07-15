@@ -7,7 +7,6 @@ from unittest import mock
 
 import pytest
 import pyzbar.pyzbar as pyzbar
-import qrcode
 from PIL import Image
 
 from karoloke import jukebox_router
@@ -51,6 +50,9 @@ def test_playlist_qr(client):
     assert response.mimetype == 'image/png'
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('darwin'), reason='QR code IP test skipped on macOS'
+)
 def test_playlist_qr_is_with_ip_address(client):
     response = client.get('/playlist_qr')
     assert response.status_code == 200
