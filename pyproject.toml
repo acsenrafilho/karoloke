@@ -1,6 +1,6 @@
 [project]
 name = "karoloke"
-version = "1.0.0"
+version = "1.2.0"
 description = "A simple karaoke framework to your party!"
 authors = [
     {name = "Antonio Senra",email = "acsenrafilho@gmail.com"}
@@ -38,6 +38,7 @@ pytest = "^8.4.1"
 pytest-cov = "^6.2.1"
 pymupdf = "^1.26.3"
 google-genai = "^1.25.0"
+pyzbar = "^0.1.9"
 
 
 [tool.poetry.group.doc.dependencies]

@@ -31,6 +31,9 @@ jobs:
       - name: Install asltk project dependecies
         run: poetry install
 
+      - name: Install zbar for pyzbar
+        run: sudo apt-get update && sudo apt-get install -y libzbar0
+
       - name: Run code formatting check
         run: poetry run task lint-check
 
@@ -91,16 +94,21 @@ jobs:
         uses: actions/checkout@v4.2.0
 
 
-      - name: Setup Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'  
+          python-version: ${{ matrix.python-version }}
 
       - name: Install Poetry
         run: pip install poetry
 
       - name: Install asltk project dependecies
         run: poetry install
+
+      - name: Install zbar for pyzbar
+        run: |
+          brew update
+          brew install zbar
 
       - name: Run code formatting check
         run: poetry run task lint-check
