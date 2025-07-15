@@ -31,6 +31,9 @@ jobs:
       - name: Install asltk project dependecies
         run: poetry install
 
+      - name: Install zbar for pyzbar
+        run: sudo apt-get update && sudo apt-get install -y libzbar0
+
       - name: Run code formatting check
         run: poetry run task lint-check
 
@@ -101,6 +104,9 @@ jobs:
 
       - name: Install asltk project dependecies
         run: poetry install
+
+      - name: Install zbar for pyzbar
+        run: brew install zbar
 
       - name: Run code formatting check
         run: poetry run task lint-check
