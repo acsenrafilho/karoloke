@@ -1,11 +1,12 @@
 import os
 import shutil
 import tempfile
+from unittest import mock
 
 import pytest
 
 from karoloke.settings import VIDEO_FORMATS
-from karoloke.utils import collect_playlist
+from karoloke.utils import collect_playlist, is_playable
 
 
 @pytest.fixture
@@ -61,3 +62,97 @@ def test_collect_playlist_nonexistent_dir():
     """Test that a nonexistent directory returns an empty list."""
     playlist = collect_playlist('/nonexistent/path/for/karoloke')
     assert playlist == []
+
+
+def test_is_playable_nonexistent_file():
+    """Test that is_playable returns False for nonexistent file."""
+    assert is_playable('/nonexistent/file.mp4') is False
+
+
+def test_is_playable_empty_file():
+    """Test that is_playable returns False for empty file."""
+    with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
+        temp_path = f.name
+    try:
+        # File exists but is empty (size 0)
+        assert is_playable(temp_path) is False
+    finally:
+        os.remove(temp_path)
+
+
+def test_is_playable_valid_file_no_ffprobe():
+    """Test is_playable with valid file when ffprobe is not available."""
+    with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
+        f.write(b'fake video content')
+        temp_path = f.name
+
+    try:
+        with mock.patch('shutil.which', return_value=None):
+            # Should return True based on size check alone
+            assert is_playable(temp_path) is True
+    finally:
+        os.remove(temp_path)
+
+
+def test_is_playable_with_ffprobe_success():
+    """Test is_playable when ffprobe is available and succeeds."""
+    with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
+        f.write(b'fake video content')
+        temp_path = f.name
+
+    try:
+        # Mock ffprobe being available and returning success
+        with mock.patch('shutil.which', return_value='/usr/bin/ffprobe'):
+            mock_result = mock.Mock()
+            mock_result.returncode = 0
+            with mock.patch('subprocess.run', return_value=mock_result):
+                assert is_playable(temp_path) is True
+    finally:
+        os.remove(temp_path)
+
+
+def test_is_playable_with_ffprobe_failure():
+    """Test is_playable when ffprobe is available but fails."""
+    with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
+        f.write(b'fake video content')
+        temp_path = f.name
+
+    try:
+        with mock.patch('shutil.which', return_value='/usr/bin/ffprobe'):
+            mock_result = mock.Mock()
+            mock_result.returncode = 1
+            with mock.patch('subprocess.run', return_value=mock_result):
+                assert is_playable(temp_path) is False
+    finally:
+        os.remove(temp_path)
+
+
+def test_is_playable_with_ffprobe_exception():
+    """Test is_playable when ffprobe raises an exception."""
+    with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
+        f.write(b'fake video content')
+        temp_path = f.name
+
+    try:
+        with mock.patch('shutil.which', return_value='/usr/bin/ffprobe'):
+            with mock.patch(
+                'subprocess.run', side_effect=Exception('ffprobe error')
+            ):
+                assert is_playable(temp_path) is False
+    finally:
+        os.remove(temp_path)
+
+
+def test_is_playable_os_error_on_size():
+    """Test is_playable when os.path.getsize raises OSError."""
+    with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
+        f.write(b'content')
+        temp_path = f.name
+
+    try:
+        with mock.patch(
+            'os.path.getsize', side_effect=OSError('Permission denied')
+        ):
+            assert is_playable(temp_path) is False
+    finally:
+        os.remove(temp_path)

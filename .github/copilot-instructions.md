@@ -12,7 +12,7 @@
 - Use the `task` command for running tasks defined in `pyproject.toml`.
 - Use `poetry` for managing dependencies and running tasks.
 - Use `pytest` for running tests and generating coverage reports.
-- When creating commit messages, use the following prefixes:
+- When creating commit messages, make it as more complete and descriptive as possible and use the following prefixes:
   - `ENH:` for new features and enhancements
   - `BUG:` for bug fixes in general and correcting broken code
   - `DOC:` for documentation changes

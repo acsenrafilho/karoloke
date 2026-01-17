@@ -1,6 +1,6 @@
 [project]
 name = "karoloke"
-version = "1.2.0"
+version = "2.0.0"
 description = "A simple karaoke framework to your party!"
 authors = [
     {name = "Antonio Senra",email = "acsenrafilho@gmail.com"}
@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",    
 ]
 
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.9,<=3.12"
 dependencies = [
     "flask (>=3.1.1,<4.0.0)",
     "rich (>=14.0.0,<15.0.0)",
@@ -39,6 +39,9 @@ pytest-cov = "^6.2.1"
 pymupdf = "^1.26.3"
 google-genai = "^1.25.0"
 pyzbar = "^0.1.9"
+pyinstaller = "^6.0.0"
+pandas = "^2.2.3"
+tabula-py = "^2.10.0"
 
 
 [tool.poetry.group.doc.dependencies]
@@ -61,6 +64,7 @@ docs = "mkdocs serve"
 pre_test = "task lint"
 test = "pytest --ignore-glob='./karoloke/scripts/*.py' -v -x --cov=karoloke --cov-report=html --disable-warnings"
 post_test = "coverage html"
+build-exe = "pyinstaller .github/karoloke.spec --clean --noconfirm"
 
 [tool.poetry.scripts]
 karoloke = "karoloke.start_karaoke:main"

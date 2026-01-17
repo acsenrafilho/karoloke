@@ -128,46 +128,164 @@ def test_score(client):
     assert b'<html' in response.data
 
 
-def test_singers_get(client):
-    """Test GET request to /singers route returns singers page."""
-    response = client.get('/singers')
+def test_add_to_queue_valid(client):
+    with client.session_transaction() as sess:
+        sess['queue'] = []
+
+    with mock.patch(
+        'karoloke.jukebox_router.validate_song_for_queue',
+        return_value={'valid': True, 'reason': None},
+    ):
+        response = client.post('/add_to_queue', data={'song': '123'})
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['status'] == 'ok'
+        assert '123' in data['queue']
+
+
+def test_add_to_queue_duplicate(client):
+    with mock.patch(
+        'karoloke.jukebox_router.validate_song_for_queue',
+        return_value={'valid': False, 'reason': 'duplicate'},
+    ):
+        response = client.post('/add_to_queue', data={'song': '123'})
+        assert response.status_code == 409
+        data = response.get_json()
+        assert data['status'] == 'duplicate'
+
+
+def test_add_to_queue_error(client):
+    with mock.patch(
+        'karoloke.jukebox_controller.validate_song_for_queue',
+        return_value={'valid': False, 'reason': 'error'},
+    ):
+        response = client.post('/add_to_queue', data={'song': '999'})
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data['status'] == 'error'
+
+
+def test_add_to_queue_empty_song(client):
+    response = client.post('/add_to_queue', data={'song': ''})
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data['status'] == 'error'
+
+
+def test_get_queue(client):
+    with client.session_transaction() as sess:
+        sess['queue'] = ['123', '456']
+
+    response = client.get('/get_queue')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['queue'] == ['123', '456']
+
+
+def test_get_queue_empty(client):
+    response = client.get('/get_queue')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['queue'] == []
+
+
+def test_next_song_with_queue(client):
+    with client.session_transaction() as sess:
+        sess['queue'] = ['123', '456']
+        sess['current_song'] = '123'
+
+    response = client.get('/next_song')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['status'] == 'next'
+    assert data['next_song'] == '456'
+
+
+def test_next_song_empty_queue(client):
+    with client.session_transaction() as sess:
+        sess['queue'] = ['123']
+        sess['current_song'] = '123'
+
+    response = client.get('/next_song')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data['status'] == 'empty'
+
+
+def test_settings_page(client):
+    response = client.get('/settings')
     assert response.status_code == 200
     assert b'<html' in response.data
-    assert b'Cantor' in response.data or b'Nome' in response.data
+    assert b'Background' in response.data or b'background' in response.data
 
 
-def test_singers_post_valid(client):
-    """Test POST request to /singers with a valid new singer."""
-    # Remove any test singer if present
-    test_name = 'TestSinger'
-    # Ensure no duplicate
-    for k in list(jukebox_router.SINGERS.keys()):
-        if jukebox_router.SINGERS[k]['name'] == test_name:
-            del jukebox_router.SINGERS[k]
-    response = client.post('/singers', data={'nickname': test_name})
+def test_get_background_folders(client):
+    with mock.patch(
+        'karoloke.jukebox_controller.get_background_subfolders',
+        return_value=['default', 'custom'],
+    ):
+        response = client.get('/get_background_folders')
+        assert response.status_code == 200
+        data = response.get_json()
+        assert 'folders' in data
+        assert 'default' in data['folders']
+        assert 'current' in data
+
+
+def test_set_background_folder_valid(client):
+    with mock.patch(
+        'karoloke.jukebox_router.get_background_subfolders',
+        return_value=['default', 'custom'],
+    ):
+        response = client.post(
+            '/set_background_folder', data={'folder': 'custom'}
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['status'] == 'ok'
+        assert data['folder'] == 'custom'
+
+
+def test_set_background_folder_invalid(client):
+    with mock.patch(
+        'karoloke.jukebox_controller.get_background_subfolders',
+        return_value=['default'],
+    ):
+        response = client.post(
+            '/set_background_folder', data={'folder': 'nonexistent'}
+        )
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data['status'] == 'error'
+
+
+def test_set_background_folder_empty(client):
+    response = client.post('/set_background_folder', data={'folder': ''})
+    assert response.status_code == 400
+    data = response.get_json()
+    assert data['status'] == 'error'
+
+
+def test_index_auto_load_from_queue(client):
+    with client.session_transaction() as sess:
+        sess['queue'] = ['123']
+
+    with mock.patch(
+        'karoloke.jukebox_controller.get_video_file', return_value='123.mp4'
+    ):
+        response = client.get('/')
+        assert response.status_code == 200
+        assert b'123' in response.data or b'html' in response.data
+
+
+def test_playlist_with_pagination(client):
+    response = client.get('/playlist?page=1&page_size=100')
     assert response.status_code == 200
-
-    # Clean up
-    for k in list(jukebox_router.SINGERS.keys()):
-        if jukebox_router.SINGERS[k]['name'] == test_name:
-            del jukebox_router.SINGERS[k]
+    assert b'<html' in response.data
 
 
-def test_singers_post_duplicate(client):
-    """Test POST request to /singers with a duplicate singer name."""
-    test_name = 'DuplicateSinger'
-    # Add singer manually
-    pos = len(jukebox_router.SINGERS) + 1
-    jukebox_router.SINGERS[pos] = {
-        'name': test_name,
-        'average_score': 0,
-        'songs_counter': 0,
-    }
-    response = client.post('/singers', data={'nickname': test_name})
+def test_playlist_invalid_page_size(client):
+    # Invalid page_size should default to 100
+    response = client.get('/playlist?page=1&page_size=999')
     assert response.status_code == 200
-
-
-def test_singers_post_empty_name(client):
-    """Test POST request to /singers with empty nickname."""
-    response = client.post('/singers', data={'nickname': ''})
-    assert response.status_code == 200
+    assert b'<html' in response.data

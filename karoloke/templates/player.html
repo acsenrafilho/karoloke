@@ -38,48 +38,40 @@
             background: rgba(0,0,0,0.5);
             padding: 40px;
             border-radius: 20px;
-            top: 10%;
             text-align: center;
-            z-index: 1;
+            z-index: 2;
             position: relative;
+        }
+        /* Remove padding when playing video */
+        #centerbox.playing {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
         }
         input[type="number"] {
             font-size: 2em;
             width: 200px;
             text-align: center;
         }
-        /* Enhanced singer selector styles */
-        #singer-select {
-            font-size: 1.5em;
-            width: 250px;
-            margin-bottom: 18px;
-            text-align: center;
-            background: linear-gradient(90deg, #7d2bc0 0%, #55075c 100%);
-            color: #fff;
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 0 10px #55075c;
-            padding: 12px 18px;
-            outline: none;
-            transition: box-shadow 0.2s, background 0.2s;
-        }
-        #singer-select:focus {
-            box-shadow: 0 0 18px #9b2cb1;
-            background: linear-gradient(90deg, #9b2cb1 0%, #7d2bc0 100%);
-        }
-        #singer-select option {
-            background: #55075c;
-            color: #fff;
-        }
         button {
             font-size: 1.5em;
             margin-top: 20px;
         }
+        /* Responsive video player */
         video {
-            width: 80vw;
-            max-width: 1200px;
-            border-radius: 20px;
-            box-shadow: 0 0 20px #55075c;
+            position: relative;
+            max-width: 100vw;
+            max-height: 100vh;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 0;
+            box-shadow: none;
         }
         /* Playlist QR code styles */
         #playlist-qr {
@@ -140,63 +132,154 @@
             width: 24px;
             height: 24px;
         }
-        /* Add Singer button styles */
-        #add-singer-btn {
-            background: #55075c;
-            border: none;
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        #add-singer-btn img {
-            display: block;
-            width: 24px;
-            height: 24px;
-        }
-        /* Ranking table styles */
-        #ranking-table {
+        /* Full-screen start prompt overlay */
+        #start-prompt {
             position: fixed;
-            right: 32px;
-            bottom: 32px;
-            z-index: 30;
-            background: rgba(0,0,0,0.8);
-            border-radius: 18px;
-            padding: 24px 32px;
-            box-shadow: 0 0 24px #55075c;
-            min-width: 320px;
-            max-width: 400px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            background: rgba(85, 7, 92, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
-        #ranking-table h2 {
+        #start-prompt h1 {
             color: #fff;
+            font-size: 4em;
+            text-shadow: 0 0 20px #9b2cb1;
+            margin: 0;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        /* Queue widget styles */
+        #queue-widget {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 15;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            padding: 12px;
+            min-width: 280px;
+            border: 2px solid #9b2cb1;
+        }
+        #queue-input-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        #queue-input {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 0.85em;
+            border: 1px solid #9b2cb1;
+            border-radius: 4px;
             text-align: center;
-            margin-bottom: 18px;
-            font-size: 1.4em;
+            max-width: 100px;
         }
-        #ranking-table table {
-            width: 100%;
-            border-collapse: collapse;
+        #queue-add-btn {
+            padding: 6px 12px;
+            background: #9b2cb1;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85em;
         }
-        #ranking-table th, #ranking-table td {
+        #queue-add-btn:hover {
+            background: #7d2cb1;
+        }
+        /* Toast notification styles */
+        #queue-toast {
+            position: absolute;
+            right: -120px;
+            top: 50%;
+            transform: translateY(-50%);
             padding: 8px 12px;
-            text-align: left;
-        }
-        #ranking-table th {
+            border-radius: 6px;
             color: #fff;
-            font-size: 1.1em;
+            font-weight: bold;
+            font-size: 0.9em;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
         }
-        #ranking-table td {
+        #queue-toast.show {
+            opacity: 1;
+        }
+        #queue-toast.ok {
+            background: #4caf50;
+        }
+        #queue-toast.duplicate {
+            background: #ffc107;
+            color: #000;
+        }
+        #queue-toast.error {
+            background: #f44336;
+        }
+        /* Queue list styles */
+        #queue-list-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        #queue-list-container.expanded {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #queue-toggle {
             color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        #queue-toggle:hover {
+            color: #9b2cb1;
+        }
+        .queue-item {
+            background: rgba(155, 44, 177, 0.2);
+            padding: 8px;
+            margin-top: 4px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
     <div class="main-bg"></div>
-    <!-- Total Videos Display (top-left corner) -->
-    <div id="video-count" style="position:absolute;top:20px;left:20px;z-index:10;background:rgba(0,0,0,0.6);color:#fff;padding:10px 18px;border-radius:12px;font-size:1.2em;">
+    <!-- Full-screen start prompt overlay -->
+    <div id="start-prompt">
+        <h1 id="start-prompt-text">Preparado? Aperte Enter!</h1>
+    </div>
+    <!-- Queue Widget (upper-left) -->
+    <div id="queue-widget">
+        <div id="queue-input-group">
+            <input type="text" id="queue-input" pattern="\d*" maxlength="5" placeholder="Número">
+            <button id="queue-add-btn">Adicionar</button>
+            <div id="queue-toast"></div>
+        </div>
+        <div id="queue-toggle">
+            <span>Fila: <span id="queue-count">0</span></span>
+            <span id="queue-toggle-icon">▼</span>
+        </div>
+        <div id="queue-list-container">
+            <div id="queue-list"></div>
+        </div>
+    </div>
+    <!-- Total Videos Display (bottom-right corner) -->
+    <div id="video-count" style="position:absolute;bottom:100px;right:20px;z-index:10;background:rgba(0,0,0,0.6);color:#fff;padding:10px 18px;border-radius:12px;font-size:1.2em;">
         Videos: {{total_videos}}
     </div>
     <div id="playlist-qr">
@@ -205,7 +288,7 @@
     </div>
     <div id="centerbox">
         {% if video %}
-            <video id="player" controls autoplay onended="window.location='/score?singer={{ selected_singer | urlencode }}'">
+            <video id="player" controls preload="auto">
                 <source src="/video/{{video}}" type="video/mp4">
                 <source src="/video/{{video}}" type="video/webm">
                 <source src="/video/{{video}}" type="video/ogg">
@@ -216,8 +299,82 @@
             <script>
                 // Hide QR code when video is playing
                 document.getElementById('playlist-qr').style.display = 'none';
-                document.getElementById('stop-btn').onclick = function() {
-                    window.location.href = '/';
+                
+                // Apply playing class to centerbox for proper video centering
+                document.getElementById('centerbox').classList.add('playing');
+                
+                document.getElementById('stop-btn').onclick = async function() {
+                    // Stop the video
+                    player.pause();
+                    player.currentTime = 0;
+                    
+                    // Remove current song from queue and load next or go home (skip score)
+                    try {
+                        const response = await fetch('/next_song');
+                        const data = await response.json();
+                        
+                        if (data.status === 'next') {
+                            // Load next song
+                            window.location.href = '/';
+                        } else {
+                            // Queue is empty, return to home (skip score)
+                            window.location.href = '/';
+                        }
+                    } catch (err) {
+                        console.error('Error stopping song:', err);
+                        window.location.href = '/';
+                    }
+                };
+
+                // Show start prompt overlay with queue info
+                const startPrompt = document.getElementById('start-prompt');
+                const startPromptText = document.getElementById('start-prompt-text');
+                const player = document.getElementById('player');
+                
+                // Update start prompt with song number and queue position
+                const currentSong = '{{current_song}}';
+                const queuePosition = {{queue_position or 'null'}};
+                const queueLength = {{queue_length or 'null'}};
+                
+                if (currentSong && queuePosition && queueLength) {
+                    startPromptText.innerHTML = `Música #${currentSong}<br>(Posição ${queuePosition} de ${queueLength})<br><br>Preparado? Aperte Enter!`;
+                } else if (currentSong) {
+                    startPromptText.innerHTML = `Música #${currentSong}<br><br>Preparado? Aperte Enter!`;
+                }
+                
+                startPrompt.style.display = 'flex';
+
+                // Listen for Enter key to start video
+                function startVideo() {
+                    startPrompt.style.display = 'none';
+                    player.play().catch(err => {
+                        console.error('Autoplay error:', err);
+                    });
+                    // Remove event listeners after starting
+                    document.removeEventListener('keydown', handleKeyPress);
+                    startPrompt.removeEventListener('click', startVideo);
+                }
+
+                function handleKeyPress(e) {
+                    if (e.key === 'Enter') {
+                        startVideo();
+                    }
+                }
+
+                document.addEventListener('keydown', handleKeyPress);
+                startPrompt.addEventListener('click', startVideo);
+                
+                // Handle video end - remove from queue then go to score page
+                player.onended = async function() {
+                    try {
+                        // Remove current song from queue
+                        await fetch('/next_song');
+                        // Always go to score page after music finishes
+                        window.location.href = '/score';
+                    } catch (err) {
+                        console.error('Error processing song end:', err);
+                        window.location.href = '/score';
+                    }
                 };
             </script>
         {% else %}
@@ -226,74 +383,116 @@
                 document.getElementById('playlist-qr').style.display = 'flex';
             </script>
             <form method="post">
-                <h1 style="color:rgb(255, 255, 255);">Número da música</h1>
+                <h1 style="color:rgb(255, 255, 255); ">Número</h1>
                 <input type="text" name="song" id="song-input" pattern="\d*" maxlength="5" required autofocus style="text-align:center; font-size:4em; width:250px;">
                 <br>
-                <label for="singer-select" style="color:#fff;font-size:1.0em;margin-top:18px;display:block;">Selecione o cantor(a):</label>
-                <select name="singer" id="singer-select">
-                    <option value="">-- Selecione --</option>
-                    {% for singer in singers %}
-                        <option value="{{ singer.name }}">{{ singer.name }}</option>
-                    {% endfor %}
-                </select>
-                <br>
-                <button type="submit" id="sing-btn" style="background: #9b2cb1; color: #fff; border: none; border-radius: 15%; width: 200px; height: 56px; font-size: 1.5em; box-shadow: 0 0 10px #000; cursor: pointer; opacity: 0.5;" disabled>
+                <button type="submit" id="sing-btn" style="background: #9b2cb1; color: #fff; border: none; border-radius: 15%; width: 200px; height: 56px; font-size: 1.5em; box-shadow: 0 0 10px #000; cursor: pointer;">
                     Bota pra cantar!
                 </button>
             </form>
-            <script>
-                // Enable button only if both fields are filled
-                const songInput = document.getElementById('song-input');
-                const singerSelect = document.getElementById('singer-select');
-                const singBtn = document.getElementById('sing-btn');
-                function checkFields() {
-                    const enabled = songInput.value.trim() && singerSelect.value;
-                    singBtn.disabled = !enabled;
-                    singBtn.style.opacity = enabled ? '1' : '0.5';
-                }
-                songInput.addEventListener('input', checkFields);
-                singerSelect.addEventListener('change', checkFields);
-                checkFields();
-            </script>
-            <!-- Ranking Table (only when not playing video) -->
-            <div id="ranking-table" style="position:fixed;right:32px;bottom:32px;z-index:30;background:rgba(0,0,0,0.8);border-radius:18px;padding:24px 32px;box-shadow:0 0 24px #55075c;min-width:320px;max-width:400px;">
-                <h2 style="color:#fff;text-align:center;margin-bottom:18px;font-size:1.4em;">Ranking dos Cantores</h2>
-                <table style="width:100%;border-collapse:collapse;">
-                    <thead>
-                        <tr style="color:#fff;font-size:1.1em;">
-                            <th style="padding:8px 12px;text-align:left;">Posição</th>
-                            <th style="padding:8px 12px;text-align:left;">Nome</th>
-                            <th style="padding:8px 12px;text-align:center;">Músicas</th>
-                            <th style="padding:8px 12px;text-align:center;">Score Médio</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set sorted_singers = singers|sort(attribute='average_score', reverse=true) %}
-                        {% for singer in sorted_singers[:5] %}
-                        <tr>
-                            <td style="padding:8px 12px;">
-                                {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
-                            </td>
-                            <td style="padding:8px 12px; color:#fff;">{{ singer.name }}</td>
-                            <td style="padding:8px 12px; text-align:center; color:#fff;">{{ singer.songs_counter }}</td>
-                            <td style="padding:8px 12px; text-align:center; color:#fff;">{{ singer.average_score }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
         {% endif %}
     </div>
-    <a href="/setup_video_dir" title="Configurar Pasta de Vídeos" style="position:absolute;top:20px;right:76px;z-index:10;text-decoration:none;">
+    <a href="/settings" title="Configurações" style="position:absolute;top:20px;right:20px;z-index:10;text-decoration:none;">
         <button id="setup-btn">
-            <img src="/static/setup_icon.png" alt="Setup" />
+            <img src="/static/setup_icon.png" alt="Settings" />
         </button>
     </a>
-    <a href="/singers" title="Adicionar Cantor(a)" style="position:absolute;top:20px;right:20px;z-index:10;text-decoration:none;">
-        <button id="add-singer-btn">
-            <img src="/static/singers_icon.png" alt="Singers" />
-        </button>
-    </a>
-    <!-- ...existing code... -->
+    <script>
+        // Initialize queue management
+        const queueInput = document.getElementById('queue-input');
+        const queueAddBtn = document.getElementById('queue-add-btn');
+        const queueToast = document.getElementById('queue-toast');
+        const queueToggle = document.getElementById('queue-toggle');
+        const queueListContainer = document.getElementById('queue-list-container');
+        const queueList = document.getElementById('queue-list');
+        const queueCount = document.getElementById('queue-count');
+        const queueToggleIcon = document.getElementById('queue-toggle-icon');
+        
+        let isQueueExpanded = false;
+        
+        // Load initial queue from template
+        const initialQueue = {{ queue | tojson }};
+        updateQueueDisplay(initialQueue);
+        
+        // Add song to queue
+        queueAddBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const songNum = queueInput.value.trim();
+            
+            if (!songNum) {
+                showToast('Erro nesta musica, escolha outra', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/add_to_queue', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `song=${encodeURIComponent(songNum)}`
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast('OK', 'ok');
+                    updateQueueDisplay(data.queue);
+                    queueInput.value = '';
+                    queueInput.focus();
+                } else if (response.status === 409) {
+                    showToast('Música já selecionada', 'duplicate');
+                } else {
+                    showToast('Erro nesta musica, escolha outra', 'error');
+                }
+            } catch (err) {
+                console.error('Error adding to queue:', err);
+                showToast('Erro nesta musica, escolha outra', 'error');
+            }
+        });
+        
+        // Allow Enter key to add song
+        queueInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                queueAddBtn.click();
+            }
+        });
+        
+        // Toggle queue expansion
+        queueToggle.addEventListener('click', () => {
+            isQueueExpanded = !isQueueExpanded;
+            if (isQueueExpanded) {
+                queueListContainer.classList.add('expanded');
+                queueToggleIcon.textContent = '▲';
+            } else {
+                queueListContainer.classList.remove('expanded');
+                queueToggleIcon.textContent = '▼';
+            }
+        });
+        
+        // Show toast notification
+        function showToast(message, type) {
+            queueToast.textContent = message;
+            queueToast.className = `show ${type}`;
+            
+            setTimeout(() => {
+                queueToast.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Update queue display
+        function updateQueueDisplay(queue) {
+            queueCount.textContent = queue.length;
+            queueList.innerHTML = '';
+            
+            queue.forEach((songNum, index) => {
+                const item = document.createElement('div');
+                item.className = 'queue-item';
+                item.textContent = `${index + 1}. Música #${songNum}`;
+                queueList.appendChild(item);
+            });
+        }
+    </script>
 </body>
 </html>
