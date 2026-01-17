@@ -117,14 +117,24 @@
             gifTable.appendChild(img);
         });
 
+        // Hidden cheat: triple ArrowUp forces the final score to 100
+        let arrowUpCount = 0;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                arrowUpCount++;
+                console.log(`ArrowUp pressed: ${arrowUpCount}/1 for cheat`);
+            }
+        });
+
         // Score animation
         const scoreElem = document.getElementById('score');
-        let finalScore = Math.floor(Math.random() * 26) + 75; // 75-100
         let interval = setInterval(() => {
             scoreElem.textContent = Math.floor(Math.random() * 26) + 75;
         }, 80);
         setTimeout(() => {
             clearInterval(interval);
+            // Check if cheat was activated (1+ ArrowUp presses)
+            let finalScore = (arrowUpCount >= 1) ? 100 : Math.floor(Math.random() * 26) + 75;
             scoreElem.textContent = finalScore;
             scoreElem.style.fontSize = '7em';
             // Redirect after audio
