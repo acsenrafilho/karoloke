@@ -3,6 +3,8 @@ import json
 import os
 import socket
 
+import math
+
 import qrcode
 from flask import (
     Flask,
@@ -24,7 +26,8 @@ from karoloke.settings import (
     VIDEO_DIR,
     VIDEO_PATH_SETUP_TEMPLATE,
 )
-from karoloke.utils import collect_playlist
+from karoloke.utils import collect_playlist, is_playable
+from karoloke.settings import VIDEO_FORMATS
 
 app = Flask(__name__)
 app.secret_key = 'karoloke-secret-key-2024'  # Secret key for session management
@@ -96,16 +99,72 @@ def index():
 
 @app.route('/playlist')
 def playlist():
-    # Get available video files (filenames without extension)
-    video_files = set(
-        os.path.splitext(os.path.basename(f))[0]
-        for f in collect_playlist(VIDEO_DIR)
-    )
-    # Filter playlist to only those with a matching video file
+    # Reload playlist JSON each request for freshness
+    try:
+        with open(playlist_path, 'r', encoding='utf-8') as f:
+            current_playlist = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        current_playlist = []
+
+    # Use shared is_playable from utils
+
+    # Discover available videos (first basename wins)
+    valid_videos = {}
+    scan_errors = 0
+    for root, _, files in os.walk(VIDEO_DIR):
+        for fname in files:
+            _, ext = os.path.splitext(fname)
+            if ext.lower() not in VIDEO_FORMATS:
+                continue
+            basename = os.path.splitext(fname)[0]
+            full_path = os.path.join(root, fname)
+            if basename in valid_videos:
+                scan_errors += 1  # duplicate basename
+                continue
+            if is_playable(full_path):
+                valid_videos[basename] = full_path
+            else:
+                scan_errors += 1
+
+    # Filter playlist entries to those with valid videos
     filtered_playlist = [
-        row for row in playlist_data if row['filename'] in video_files
+        row for row in current_playlist if row.get('filename') in valid_videos
     ]
-    return render_template('playlist.html', playlist=filtered_playlist)
+    missing_errors = len(current_playlist) - len(filtered_playlist)
+    error_count = scan_errors + missing_errors
+    ok_count = len(filtered_playlist)
+
+    # Pagination
+    page = max(int(request.args.get('page', 1)), 1)
+    allowed_page_sizes = [100, 200, 500]
+    try:
+        page_size = int(request.args.get('page_size', allowed_page_sizes[0]))
+    except ValueError:
+        page_size = allowed_page_sizes[0]
+    if page_size not in allowed_page_sizes:
+        page_size = allowed_page_sizes[0]
+
+    total_pages = max(math.ceil(ok_count / page_size), 1)
+    if page > total_pages:
+        page = total_pages
+
+    start_idx = (page - 1) * page_size
+    end_idx = start_idx + page_size
+    page_items = filtered_playlist[start_idx:end_idx]
+
+    pages_list = list(range(1, total_pages + 1))
+
+    return render_template(
+        'playlist.html',
+        playlist=page_items,
+        page=page,
+        total_pages=total_pages,
+        page_size=page_size,
+        page_sizes=allowed_page_sizes,
+        pages_list=pages_list,
+        ok_count=ok_count,
+        error_count=error_count,
+    )
 
 
 @app.route('/playlist_qr')
