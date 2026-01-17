@@ -40,6 +40,8 @@ pymupdf = "^1.26.3"
 google-genai = "^1.25.0"
 pyzbar = "^0.1.9"
 pyinstaller = "^6.0.0"
+pandas = "^2.2.3"
+tabula-py = "^2.10.0"
 
 
 [tool.poetry.group.doc.dependencies]

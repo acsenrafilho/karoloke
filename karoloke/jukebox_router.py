@@ -17,12 +17,14 @@ from flask import (
 
 from karoloke.jukebox_controller import (
     get_background_img,
+    get_background_subfolders,
     get_video_file,
     validate_song_for_queue,
 )
 from karoloke.settings import (
     BACKGROUND_DIR,
     PLAYER_TEMPLATE,
+    SETTINGS_TEMPLATE,
     VIDEO_DIR,
     VIDEO_PATH_SETUP_TEMPLATE,
 )
@@ -46,13 +48,16 @@ except (FileNotFoundError, json.JSONDecodeError):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    # Initialize queue if not present
+    # Initialize session variables if not present
     if 'queue' not in session:
         session['queue'] = []
         session['current_song'] = None
         session.modified = True
+    if 'background_folder' not in session:
+        session['background_folder'] = 'default'
+        session.modified = True
     
-    bg_img = get_background_img(BACKGROUND_DIR)
+    bg_img = get_background_img(BACKGROUND_DIR, session.get('background_folder', 'default'))
     video = None
     current_song = None
     queue_position = None
@@ -217,7 +222,8 @@ def setup_video_dir():
             return {'status': 'success', 'video_dir': VIDEO_DIR}, 200
         return {'status': 'error', 'message': 'Invalid directory'}, 400
     # GET request: show the setup page
-    background_img = get_background_img(BACKGROUND_DIR)
+    bg_folder = session.get('background_folder', 'default')
+    background_img = get_background_img(BACKGROUND_DIR, bg_folder)
     return render_template(VIDEO_PATH_SETUP_TEMPLATE, bg_img=background_img)
 
 
@@ -278,5 +284,47 @@ def next_song():
 
 @app.route('/score')
 def score():
-    bg_img = get_background_img(BACKGROUND_DIR)
+    bg_folder = session.get('background_folder', 'default')
+    bg_img = get_background_img(BACKGROUND_DIR, bg_folder)
     return render_template('score.html', bg_img=bg_img)
+
+
+@app.route('/settings')
+def settings():
+    """Settings page for background folder and video directory configuration."""
+    bg_folder = session.get('background_folder', 'default')
+    bg_img = get_background_img(BACKGROUND_DIR, bg_folder)
+    folders = get_background_subfolders(BACKGROUND_DIR)
+    return render_template(
+        SETTINGS_TEMPLATE,
+        bg_img=bg_img,
+        background_folders=folders,
+        current_background=bg_folder,
+    )
+
+
+@app.route('/get_background_folders', methods=['GET'])
+def get_background_folders():
+    """List available background subfolders."""
+    folders = get_background_subfolders(BACKGROUND_DIR)
+    current = session.get('background_folder', 'default')
+    return {'folders': folders, 'current': current}, 200
+
+
+@app.route('/set_background_folder', methods=['POST'])
+def set_background_folder():
+    """Set the active background folder in session."""
+    folder = request.form.get('folder', '').strip()
+    
+    if not folder:
+        return {'status': 'error', 'message': 'No folder specified'}, 400
+    
+    # Validate folder exists
+    available_folders = get_background_subfolders(BACKGROUND_DIR)
+    if folder not in available_folders:
+        return {'status': 'error', 'message': 'Invalid folder'}, 400
+    
+    session['background_folder'] = folder
+    session.modified = True
+    
+    return {'status': 'ok', 'folder': folder}, 200

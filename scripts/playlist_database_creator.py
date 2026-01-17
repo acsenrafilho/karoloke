@@ -1,95 +1,113 @@
 import json
 import os
-import pathlib
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple
 
 import fitz  # PyMuPDF
-from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+import pandas as pd
+import tabula
 from rich import print
 from rich.console import Console
 
-from karoloke.scripts.playlist_schema import PlaylistItem
-
-# Load environment variables
-load_dotenv()
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-
+# Output paths
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-OUTPUT_PATH = Path(__file__).parent / f'playlist_output_{timestamp}.json'
+OUTPUT_DIR = Path(__file__).parent
+FINAL_OUTPUT = OUTPUT_DIR / f'playlist_output_{timestamp}.json'
+STATIC_OUTPUT = Path(__file__).parents[1] / 'karoloke' / 'static' / 'playlist.json'
+
+# Column mapping heuristics
+COLUMN_ALIASES = {
+    'filename': ['filename', 'code', 'number', 'id', 'número', 'musica', 'música'],
+    'artist': ['artist', 'cantor', 'artista', 'banda'],
+    'title': ['title', 'song', 'título', 'musica', 'música'],
+    'part': ['part', 'versão', 'observação', 'obs', 'nota'],
+}
 
 
-def call_gemini_api_with_pdf(pdf_path: str) -> dict:
-    """
-    Calls Gemini API with the actual PDF file and playlist_schema.
-    """
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    prompt = (
-        'Interpret the attached PDF file and organize the data as a JSON structure. '
-        'Each table row should be a single JSON entry.'
-    )
+def pick_column(columns, targets):
+    cols_lower = [c.strip().lower() for c in columns]
+    for t in targets:
+        if t in cols_lower:
+            return cols_lower.index(t)
+    return None
 
-    # Retrieve and encode the PDF byte
-    filepath = pathlib.Path(pdf_path)
 
-    console = Console()
-    with console.status(
-        '[bold green]Consultando Gemini API...[/]', spinner='dots'
-    ):
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=[
-                prompt,
-                types.Part.from_bytes(
-                    data=filepath.read_bytes(),
-                    mime_type='application/pdf',
-                ),
-            ],
-            config={
-                'temperature': 0,
-                'response_mime_type': 'application/json',
-                'response_schema': list[PlaylistItem],
-            },
-        )
+def sanitize_filename(val: str) -> str:
+    if val is None:
+        return ''
+    s = str(val).strip()
+    # Keep digits/letters only, common in karaoke numbers; remove spaces
+    s = ''.join(ch for ch in s if ch.isalnum())
+    return s
+
+
+def extract_page_tables(pdf_path: str, page: int) -> list[dict]:
     try:
-        # Try to extract the text from the Gemini response
-        result_text = None
-        if hasattr(response, 'candidates') and response.candidates:
-            content = getattr(response.candidates[0], 'content', None)
-            if content and hasattr(content, 'parts'):
-                parts = content.parts
-                if parts and hasattr(parts[0], 'text'):
-                    result_text = parts[0].text
-        if not result_text:
-            result_text = getattr(response, 'text', None)
-        result_json = (
-            json.loads(result_text)
-            if result_text
-            else {'error': 'No response text', 'raw': str(response)}
-        )
+        dfs = tabula.read_pdf(pdf_path, pages=page, multiple_tables=True, lattice=True)
     except Exception:
-        result_json = {
-            'error': 'Could not parse Gemini response as JSON',
-            'raw': str(response),
-        }
-    return result_json
+        dfs = tabula.read_pdf(pdf_path, pages=page, multiple_tables=True, stream=True)
+
+    items: list[dict] = []
+    for df in dfs or []:
+        if not isinstance(df, pd.DataFrame) or df.empty:
+            continue
+        df = df.dropna(how='all')
+        df.columns = [str(c).strip().lower() for c in df.columns]
+        col_map_idx = {}
+        for key, aliases in COLUMN_ALIASES.items():
+            idx = pick_column(df.columns, aliases)
+            if idx is not None:
+                col_map_idx[key] = df.columns[idx]
+        if 'filename' not in col_map_idx or 'title' not in col_map_idx:
+            continue
+        artist_col = col_map_idx.get('artist')
+        part_col = col_map_idx.get('part')
+        for _, r in df.iterrows():
+            row_dict = r.to_dict()
+            item = {
+                'filename': sanitize_filename(row_dict.get(col_map_idx['filename'], '')),
+                'artist': str(row_dict.get(artist_col, '') or '').strip() if artist_col else '',
+                'title': str(row_dict.get(col_map_idx['title'], '') or '').strip(),
+                'part': str(row_dict.get(part_col, '') or '').strip() if part_col else '',
+            }
+            if not item['filename'] or not item['title']:
+                continue
+            items.append(item)
+    return items
+
+
+def save_json(data: list[dict], path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def main(pdf_path: str):
-    print('Starting the Playlist Database Creator...')
-    # Call GeminiAPI with PDF file and playlist_schema
-    print('Calling Gemini API with PDF file...', end='')
-    result_json = call_gemini_api_with_pdf(pdf_path)
-    print(' done.')
+    print('[bold]Starting Tabula-based playlist extraction[/]')
+    # Count pages for progress output
+    try:
+        doc = fitz.open(pdf_path)
+        total_pages = doc.page_count
+        doc.close()
+    except Exception:
+        total_pages = None
 
-    # Save output
-    with open(OUTPUT_PATH, 'w') as f:
-        json.dump(result_json, f, indent=2, ensure_ascii=False)
-    print(f'Output saved to {OUTPUT_PATH}')
+    items: list[dict] = []
+    if total_pages:
+        for page in range(1, total_pages + 1):
+            print(f'[cyan]Page {page}/{total_pages}[/]')
+            page_items = extract_page_tables(pdf_path, page)
+            items.extend(page_items)
+    else:
+        print('[yellow]Could not determine page count; reading all pages[/]')
+        items = extract_page_tables(pdf_path, 'all')
+
+    print(f'[green]Extracted[/] {len(items)} items from PDF tables')
+    save_json(items, FINAL_OUTPUT)
+    print(f'[green]Saved timestamped output to[/] {FINAL_OUTPUT}')
+    save_json(items, STATIC_OUTPUT)
+    print(f'[green]Updated app playlist at[/] {STATIC_OUTPUT}')
 
 
 if __name__ == '__main__':
