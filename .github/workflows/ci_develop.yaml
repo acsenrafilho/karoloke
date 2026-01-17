@@ -122,3 +122,36 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
+
+  pyinstaller-build-test:
+    runs-on: ubuntu-latest
+    needs: [linux, windows, mac]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install poetry
+          poetry install
+
+      - name: Install ImageMagick
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+      - name: Test icon conversion
+        run: |
+          convert -background none -resize 256x256 docs/assets/karoloke-favicon-purple.svg .github/karoloke-icon.png
+          ls -lh .github/karoloke-icon.png
+
+      - name: Test PyInstaller build (dry-run)
+        run: |
+          poetry run pyinstaller .github/karoloke.spec
+          ls -lh dist/
+          echo "✅ PyInstaller build successful!"
