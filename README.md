@@ -11,9 +11,30 @@
 ![Contributors](https://img.shields.io/github/contributors/acsenrafilho/karoloke)
 [![GitHub Sponsor](https://img.shields.io/badge/Sponsor-❤️%20acsenrafilho-orange?logo=github)](https://github.com/sponsors/acsenrafilho)
 
-A simple Karaoke framework to make your party fun and easy!
+A simple and easy-to-use Music Player for your karaoke parties! Play videos with synchronized lyrics and have fun with your friends.
 
-## Installation
+## Quick Start
+
+### Download Pre-built Executable (Recommended)
+
+Download the latest release for your platform from [GitHub Releases](https://github.com/acsenrafilho/karoloke/releases):
+
+**Linux:**
+```bash
+chmod +x karoloke-v*-linux
+./karoloke-v*-linux
+```
+
+**macOS:**
+```bash
+chmod +x karoloke-v*-macos
+./karoloke-v*-macos
+```
+
+**Windows:**
+Double-click `karoloke-v*-windows.exe` to run.
+
+### Installation from Source
 
 - Requires **Python 3.9+**
 - Install via pip:
@@ -27,11 +48,50 @@ A simple Karaoke framework to make your party fun and easy!
   ```bash
   karoloke
   ```
-- The server will start locally.
-- Setup your videos database path by simply informing the diretory full path into the settings button (up-right corner) (supports: `.mp4`, `.webm`, `.ogg`).
+- The server will start locally and open in your default browser
+- Configure your video directory by clicking the settings button (top-right corner)
+- Supported formats: `.mp4`, `.webm`, `.ogg`
+- Select a song number and press Enter to start playing
+- The video player is responsive and works on all screen sizes
 
-- The karaoke interface runs in your web browser (Chrome, Firefox, or similar) using an embedded web player for seamless playback.
-- Simply open the provided local URL after starting the server to access the karaoke experience.
+## Troubleshooting
+
+### Windows
+
+**Antivirus False Positive:**
+If Windows Defender or your antivirus flags the executable:
+1. Click "More info" in the SmartScreen warning
+2. Click "Run anyway"
+3. Alternatively, add an exclusion for the karoloke executable in Windows Security
+
+### macOS
+
+**Gatekeeper Warning (Unsigned Executable):**
+If you see "cannot be opened because the developer cannot be verified":
+1. Right-click the executable file
+2. Select "Open" from the context menu
+3. Click "Open" in the dialog
+4. The app will now be allowed to run
+
+Alternatively, use Terminal:
+```bash
+xattr -d com.apple.quarantine karoloke-v*-macos
+```
+
+### Linux
+
+**GLIBC Compatibility:**
+The executable is built on Ubuntu and requires GLIBC 2.31+. If you encounter errors:
+```bash
+./karoloke-v*-linux: /lib/x86_64-linux-gnu/libc.so.6: version 'GLIBC_2.XX' not found
+```
+Solution: Install from source using pip or use a newer Linux distribution.
+
+**Permission Denied:**
+Make sure the file is executable:
+```bash
+chmod +x karoloke-v*-linux
+```
 
 ## Documentation
 
