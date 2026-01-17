@@ -85,7 +85,7 @@ def test_is_playable_valid_file_no_ffprobe():
     with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
         f.write(b'fake video content')
         temp_path = f.name
-    
+
     try:
         with mock.patch('shutil.which', return_value=None):
             # Should return True based on size check alone
@@ -99,7 +99,7 @@ def test_is_playable_with_ffprobe_success():
     with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
         f.write(b'fake video content')
         temp_path = f.name
-    
+
     try:
         # Mock ffprobe being available and returning success
         with mock.patch('shutil.which', return_value='/usr/bin/ffprobe'):
@@ -116,7 +116,7 @@ def test_is_playable_with_ffprobe_failure():
     with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
         f.write(b'fake video content')
         temp_path = f.name
-    
+
     try:
         with mock.patch('shutil.which', return_value='/usr/bin/ffprobe'):
             mock_result = mock.Mock()
@@ -132,10 +132,12 @@ def test_is_playable_with_ffprobe_exception():
     with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
         f.write(b'fake video content')
         temp_path = f.name
-    
+
     try:
         with mock.patch('shutil.which', return_value='/usr/bin/ffprobe'):
-            with mock.patch('subprocess.run', side_effect=Exception('ffprobe error')):
+            with mock.patch(
+                'subprocess.run', side_effect=Exception('ffprobe error')
+            ):
                 assert is_playable(temp_path) is False
     finally:
         os.remove(temp_path)
@@ -146,9 +148,11 @@ def test_is_playable_os_error_on_size():
     with tempfile.NamedTemporaryFile(suffix='.mp4', delete=False) as f:
         f.write(b'content')
         temp_path = f.name
-    
+
     try:
-        with mock.patch('os.path.getsize', side_effect=OSError('Permission denied')):
+        with mock.patch(
+            'os.path.getsize', side_effect=OSError('Permission denied')
+        ):
             assert is_playable(temp_path) is False
     finally:
         os.remove(temp_path)

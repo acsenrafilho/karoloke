@@ -46,14 +46,18 @@ def test_get_background_img_fallback_to_default(tmpdir):
     default_folder = tmpdir.mkdir('default')
     default_folder.join('test.jpg').write('fake')
     # Request non-existent subfolder, should fall back to default
-    result = get_background_img(background_dir=str(tmpdir), subfolder='nonexistent')
+    result = get_background_img(
+        background_dir=str(tmpdir), subfolder='nonexistent'
+    )
     assert 'default' in result
 
 
 def test_get_background_img_no_subfolder(tmpdir):
     # Image in base directory (no subfolder)
     tmpdir.join('test.png').write('fake')
-    result = get_background_img(background_dir=str(tmpdir), subfolder='missing')
+    result = get_background_img(
+        background_dir=str(tmpdir), subfolder='missing'
+    )
     assert result.endswith('.png')
 
 
@@ -62,7 +66,7 @@ def test_get_background_subfolders_returns_list(tmpdir):
     tmpdir.mkdir('custom')
     tmpdir.mkdir('.hidden')  # Should be ignored
     tmpdir.join('file.txt').write('not a folder')
-    
+
     result = get_background_subfolders(str(tmpdir))
     assert 'default' in result
     assert 'custom' in result
@@ -86,10 +90,12 @@ def test_validate_song_for_queue_valid(tmpdir):
     # Create a valid video file
     video_file = tmpdir.join('123.mp4')
     video_file.write('fake video content')
-    
+
     from karoloke import jukebox_router
+
     with jukebox_router.app.test_request_context():
         from flask import session
+
         session['queue'] = []
         result = validate_song_for_queue('123', str(tmpdir))
         assert result['valid'] is True
@@ -99,10 +105,12 @@ def test_validate_song_for_queue_valid(tmpdir):
 def test_validate_song_for_queue_duplicate(tmpdir):
     video_file = tmpdir.join('123.mp4')
     video_file.write('fake video content')
-    
+
     from karoloke import jukebox_router
+
     with jukebox_router.app.test_request_context():
         from flask import session
+
         session['queue'] = ['123']
         result = validate_song_for_queue('123', str(tmpdir))
         assert result['valid'] is False
@@ -111,8 +119,10 @@ def test_validate_song_for_queue_duplicate(tmpdir):
 
 def test_validate_song_for_queue_not_found(tmpdir):
     from karoloke import jukebox_router
+
     with jukebox_router.app.test_request_context():
         from flask import session
+
         session['queue'] = []
         result = validate_song_for_queue('999', str(tmpdir))
         assert result['valid'] is False
@@ -123,10 +133,12 @@ def test_validate_song_for_queue_empty_file(tmpdir):
     # Create an empty file (size 0)
     video_file = tmpdir.join('123.mp4')
     video_file.write('')
-    
+
     from karoloke import jukebox_router
+
     with jukebox_router.app.test_request_context():
         from flask import session
+
         session['queue'] = []
         result = validate_song_for_queue('123', str(tmpdir))
         assert result['valid'] is False
@@ -136,7 +148,7 @@ def test_validate_song_for_queue_empty_file(tmpdir):
 def test_get_video_file_found(tmpdir):
     video_file = tmpdir.join('456.mp4')
     video_file.write('fake video')
-    
+
     result = get_video_file('456', str(tmpdir))
     assert result is not None
     assert '456.mp4' in result
@@ -146,7 +158,7 @@ def test_get_video_file_in_subdirectory(tmpdir):
     subdir = tmpdir.mkdir('subdir')
     video_file = subdir.join('789.webm')
     video_file.write('fake video')
-    
+
     result = get_video_file('789', str(tmpdir))
     assert result is not None
     assert '789.webm' in result
