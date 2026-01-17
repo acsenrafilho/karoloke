@@ -8,12 +8,12 @@ from karoloke.settings import VIDEO_FORMATS
 
 def get_background_subfolders(background_dir: str) -> list[str]:
     """List all subfolders in the backgrounds directory.
-    
+
     Parameters
     ----------
     background_dir : str
         Base backgrounds directory
-    
+
     Returns
     -------
     list[str]
@@ -21,35 +21,37 @@ def get_background_subfolders(background_dir: str) -> list[str]:
     """
     if not os.path.exists(background_dir):
         return ['default']
-    
+
     subfolders = [
-        f for f in os.listdir(background_dir)
-        if os.path.isdir(os.path.join(background_dir, f)) and not f.startswith('.')
+        f
+        for f in os.listdir(background_dir)
+        if os.path.isdir(os.path.join(background_dir, f))
+        and not f.startswith('.')
     ]
-    
+
     # Ensure 'default' is always first if it exists
     if 'default' in subfolders:
         subfolders.remove('default')
         subfolders.insert(0, 'default')
-    
+
     return subfolders if subfolders else ['default']
 
 
 def validate_song_for_queue(song_num: str, video_dir: str) -> dict:
     """Validate if a song can be added to the queue.
-    
+
     Checks if:
     - Song file exists in supported format
     - File size is greater than 0
     - Song is not already in the queue
-    
+
     Parameters
     ----------
     song_num : str
         Song number to validate
     video_dir : str
         Path to video directory
-    
+
     Returns
     -------
     dict
@@ -61,7 +63,7 @@ def validate_song_for_queue(song_num: str, video_dir: str) -> dict:
     queue = session.get('queue', [])
     if song_num in queue:
         return {'valid': False, 'reason': 'duplicate'}
-    
+
     # Check if video file exists and has supported format
     video_file = None
     for ext in VIDEO_FORMATS:
@@ -78,23 +80,25 @@ def validate_song_for_queue(song_num: str, video_dir: str) -> dict:
                     continue
         if video_file:
             break
-    
+
     if not video_file:
         return {'valid': False, 'reason': 'error'}
-    
+
     return {'valid': True, 'reason': None}
 
 
-def get_background_img(background_dir: str = 'backgrounds', subfolder: str = 'default'):
+def get_background_img(
+    background_dir: str = 'backgrounds', subfolder: str = 'default'
+):
     """Get a random background image from the specified subfolder.
-    
+
     Parameters
     ----------
     background_dir : str
         Base backgrounds directory
     subfolder : str
         Subfolder name within background_dir (default: 'default')
-    
+
     Returns
     -------
     str
@@ -109,12 +113,12 @@ def get_background_img(background_dir: str = 'backgrounds', subfolder: str = 'de
             # If even default doesn't exist, use the base directory
             folder_path = background_dir
             subfolder = ''
-    
+
     if not os.path.exists(folder_path):
         raise FileNotFoundError(
             "No background images found in the 'background' directory."
         )
-    
+
     images = [
         f
         for f in os.listdir(folder_path)

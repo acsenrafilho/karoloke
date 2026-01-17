@@ -1,9 +1,8 @@
 import io
 import json
+import math
 import os
 import socket
-
-import math
 
 import qrcode
 from flask import (
@@ -26,13 +25,15 @@ from karoloke.settings import (
     PLAYER_TEMPLATE,
     SETTINGS_TEMPLATE,
     VIDEO_DIR,
+    VIDEO_FORMATS,
     VIDEO_PATH_SETUP_TEMPLATE,
 )
 from karoloke.utils import collect_playlist, is_playable
-from karoloke.settings import VIDEO_FORMATS
 
 app = Flask(__name__)
-app.secret_key = 'karoloke-secret-key-2024'  # Secret key for session management
+app.secret_key = (
+    'karoloke-secret-key-2024'  # Secret key for session management
+)
 
 playlist_path = os.path.join(
     os.path.dirname(__file__), 'static', 'playlist.json'
@@ -56,14 +57,16 @@ def index():
     if 'background_folder' not in session:
         session['background_folder'] = 'default'
         session.modified = True
-    
-    bg_img = get_background_img(BACKGROUND_DIR, session.get('background_folder', 'default'))
+
+    bg_img = get_background_img(
+        BACKGROUND_DIR, session.get('background_folder', 'default')
+    )
     video = None
     current_song = None
     queue_position = None
     queue_length = None
     queue = session.get('queue', [])
-    
+
     if request.method == 'POST':
         song_num = request.form.get('song')
         if song_num:
@@ -79,13 +82,13 @@ def index():
                 current_song = song_num
                 session['current_song'] = song_num
                 session.modified = True
-    
+
     # Calculate queue position if video is playing
     if current_song and queue:
         if current_song in queue:
             queue_position = queue.index(current_song) + 1
             queue_length = len(queue)
-    
+
     total_videos = len(collect_playlist(VIDEO_DIR))
     playlist_url = url_for('playlist')
     playlist_qr_url = url_for('playlist_qr')
@@ -231,26 +234,35 @@ def setup_video_dir():
 def add_to_queue():
     """Add a song to the queue after validation."""
     song_num = request.form.get('song', '').strip()
-    
+
     if not song_num:
-        return {'status': 'error', 'message': 'Erro nesta musica, escolha outra'}, 400
-    
+        return {
+            'status': 'error',
+            'message': 'Erro nesta musica, escolha outra',
+        }, 400
+
     # Validate song
     validation = validate_song_for_queue(song_num, VIDEO_DIR)
-    
+
     if not validation['valid']:
         if validation['reason'] == 'duplicate':
-            return {'status': 'duplicate', 'message': 'Música já selecionada'}, 409
+            return {
+                'status': 'duplicate',
+                'message': 'Música já selecionada',
+            }, 409
         else:
-            return {'status': 'error', 'message': 'Erro nesta musica, escolha outra'}, 400
-    
+            return {
+                'status': 'error',
+                'message': 'Erro nesta musica, escolha outra',
+            }, 400
+
     # Add to queue
     if 'queue' not in session:
         session['queue'] = []
-    
+
     session['queue'].append(song_num)
     session.modified = True
-    
+
     return {'status': 'ok', 'message': 'OK', 'queue': session['queue']}, 200
 
 
@@ -266,13 +278,13 @@ def next_song():
     """Remove current song from queue and load next one."""
     if 'queue' not in session:
         session['queue'] = []
-    
+
     # Remove current song from queue if it exists
     current_song = session.get('current_song')
     if current_song and current_song in session['queue']:
         session['queue'].remove(current_song)
         session.modified = True
-    
+
     # Check if there are more songs in queue
     if session['queue'] and len(session['queue']) > 0:
         # Redirect to index to auto-load next song
@@ -315,16 +327,16 @@ def get_background_folders():
 def set_background_folder():
     """Set the active background folder in session."""
     folder = request.form.get('folder', '').strip()
-    
+
     if not folder:
         return {'status': 'error', 'message': 'No folder specified'}, 400
-    
+
     # Validate folder exists
     available_folders = get_background_subfolders(BACKGROUND_DIR)
     if folder not in available_folders:
         return {'status': 'error', 'message': 'Invalid folder'}, 400
-    
+
     session['background_folder'] = folder
     session.modified = True
-    
+
     return {'status': 'ok', 'folder': folder}, 200

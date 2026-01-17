@@ -69,8 +69,15 @@ def is_playable(path: str) -> bool:
     try:
         result = subprocess.run(
             [
-                'ffprobe', '-v', 'error', '-select_streams', 'v:0',
-                '-show_entries', 'stream=codec_type', '-of', 'default=noprint_wrappers=1',
+                'ffprobe',
+                '-v',
+                'error',
+                '-select_streams',
+                'v:0',
+                '-show_entries',
+                'stream=codec_type',
+                '-of',
+                'default=noprint_wrappers=1',
                 path,
             ],
             stdout=subprocess.PIPE,

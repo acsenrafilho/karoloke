@@ -14,11 +14,21 @@ from rich.console import Console
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 OUTPUT_DIR = Path(__file__).parent
 FINAL_OUTPUT = OUTPUT_DIR / f'playlist_output_{timestamp}.json'
-STATIC_OUTPUT = Path(__file__).parents[1] / 'karoloke' / 'static' / 'playlist.json'
+STATIC_OUTPUT = (
+    Path(__file__).parents[1] / 'karoloke' / 'static' / 'playlist.json'
+)
 
 # Column mapping heuristics
 COLUMN_ALIASES = {
-    'filename': ['filename', 'code', 'number', 'id', 'número', 'musica', 'música'],
+    'filename': [
+        'filename',
+        'code',
+        'number',
+        'id',
+        'número',
+        'musica',
+        'música',
+    ],
     'artist': ['artist', 'cantor', 'artista', 'banda'],
     'title': ['title', 'song', 'título', 'musica', 'música'],
     'part': ['part', 'versão', 'observação', 'obs', 'nota'],
@@ -44,9 +54,13 @@ def sanitize_filename(val: str) -> str:
 
 def extract_page_tables(pdf_path: str, page: int) -> list[dict]:
     try:
-        dfs = tabula.read_pdf(pdf_path, pages=page, multiple_tables=True, lattice=True)
+        dfs = tabula.read_pdf(
+            pdf_path, pages=page, multiple_tables=True, lattice=True
+        )
     except Exception:
-        dfs = tabula.read_pdf(pdf_path, pages=page, multiple_tables=True, stream=True)
+        dfs = tabula.read_pdf(
+            pdf_path, pages=page, multiple_tables=True, stream=True
+        )
 
     items: list[dict] = []
     for df in dfs or []:
@@ -66,10 +80,18 @@ def extract_page_tables(pdf_path: str, page: int) -> list[dict]:
         for _, r in df.iterrows():
             row_dict = r.to_dict()
             item = {
-                'filename': sanitize_filename(row_dict.get(col_map_idx['filename'], '')),
-                'artist': str(row_dict.get(artist_col, '') or '').strip() if artist_col else '',
-                'title': str(row_dict.get(col_map_idx['title'], '') or '').strip(),
-                'part': str(row_dict.get(part_col, '') or '').strip() if part_col else '',
+                'filename': sanitize_filename(
+                    row_dict.get(col_map_idx['filename'], '')
+                ),
+                'artist': str(row_dict.get(artist_col, '') or '').strip()
+                if artist_col
+                else '',
+                'title': str(
+                    row_dict.get(col_map_idx['title'], '') or ''
+                ).strip(),
+                'part': str(row_dict.get(part_col, '') or '').strip()
+                if part_col
+                else '',
             }
             if not item['filename'] or not item['title']:
                 continue
