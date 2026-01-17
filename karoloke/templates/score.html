@@ -78,8 +78,8 @@
     </div>
     <audio id="score-audio" preload="auto"></audio>
     <script>
-        const REDIRECT_DELAY_MS = 7000; // Delay before redirecting after score reveal (ms)
-        const SCORE_REVEAL_DELAY_MS = 9000; // Duration of score animation before revealing final score (ms)
+        const REDIRECT_DELAY_MS = 4000; // Delay before redirecting after score reveal (ms)
+        const SCORE_REVEAL_DELAY_MS = 5000; // Duration of score animation before revealing final score (ms)
         const audio = document.getElementById('score-audio');
         audio.src = '/static/score_bg_audio.mp3';
         audio.play().catch(() => {
@@ -127,16 +127,6 @@
             clearInterval(interval);
             scoreElem.textContent = finalScore;
             scoreElem.style.fontSize = '7em';
-            // Send score and singer name to backend
-            const selectedSinger = "{{ request.args.get('singer', '') }}";
-            fetch('/submit_score', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    singer: selectedSinger,
-                    score: finalScore
-                })
-            });
             // Redirect after audio
             setTimeout(() => {
                 window.location.href = '/';
