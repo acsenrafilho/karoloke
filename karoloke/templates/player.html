@@ -157,16 +157,129 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
+        /* Queue widget styles */
+        #queue-widget {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 15;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            padding: 12px;
+            min-width: 280px;
+            border: 2px solid #9b2cb1;
+        }
+        #queue-input-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        #queue-input {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 0.85em;
+            border: 1px solid #9b2cb1;
+            border-radius: 4px;
+            text-align: center;
+            max-width: 100px;
+        }
+        #queue-add-btn {
+            padding: 6px 12px;
+            background: #9b2cb1;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+        #queue-add-btn:hover {
+            background: #7d2cb1;
+        }
+        /* Toast notification styles */
+        #queue-toast {
+            position: absolute;
+            right: -120px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9em;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        #queue-toast.show {
+            opacity: 1;
+        }
+        #queue-toast.ok {
+            background: #4caf50;
+        }
+        #queue-toast.duplicate {
+            background: #ffc107;
+            color: #000;
+        }
+        #queue-toast.error {
+            background: #f44336;
+        }
+        /* Queue list styles */
+        #queue-list-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        #queue-list-container.expanded {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #queue-toggle {
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        #queue-toggle:hover {
+            color: #9b2cb1;
+        }
+        .queue-item {
+            background: rgba(155, 44, 177, 0.2);
+            padding: 8px;
+            margin-top: 4px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <div class="main-bg"></div>
     <!-- Full-screen start prompt overlay -->
     <div id="start-prompt">
-        <h1>Preparado? Aperte Enter!</h1>
+        <h1 id="start-prompt-text">Preparado? Aperte Enter!</h1>
     </div>
-    <!-- Total Videos Display (top-left corner) -->
-    <div id="video-count" style="position:absolute;top:20px;left:20px;z-index:10;background:rgba(0,0,0,0.6);color:#fff;padding:10px 18px;border-radius:12px;font-size:1.2em;">
+    <!-- Queue Widget (upper-left) -->
+    <div id="queue-widget">
+        <div id="queue-input-group">
+            <input type="text" id="queue-input" pattern="\d*" maxlength="5" placeholder="Número">
+            <button id="queue-add-btn">Adicionar</button>
+            <div id="queue-toast"></div>
+        </div>
+        <div id="queue-toggle">
+            <span>Fila: <span id="queue-count">0</span></span>
+            <span id="queue-toggle-icon">▼</span>
+        </div>
+        <div id="queue-list-container">
+            <div id="queue-list"></div>
+        </div>
+    </div>
+    <!-- Total Videos Display (bottom-right corner) -->
+    <div id="video-count" style="position:absolute;bottom:100px;right:20px;z-index:10;background:rgba(0,0,0,0.6);color:#fff;padding:10px 18px;border-radius:12px;font-size:1.2em;">
         Videos: {{total_videos}}
     </div>
     <div id="playlist-qr">
@@ -175,7 +288,7 @@
     </div>
     <div id="centerbox">
         {% if video %}
-            <video id="player" controls preload="auto" onended="window.location='/score'">
+            <video id="player" controls preload="auto">
                 <source src="/video/{{video}}" type="video/mp4">
                 <source src="/video/{{video}}" type="video/webm">
                 <source src="/video/{{video}}" type="video/ogg">
@@ -190,13 +303,45 @@
                 // Apply playing class to centerbox for proper video centering
                 document.getElementById('centerbox').classList.add('playing');
                 
-                document.getElementById('stop-btn').onclick = function() {
-                    window.location.href = '/';
+                document.getElementById('stop-btn').onclick = async function() {
+                    // Stop the video
+                    player.pause();
+                    player.currentTime = 0;
+                    
+                    // Remove current song from queue and load next or go home (skip score)
+                    try {
+                        const response = await fetch('/next_song');
+                        const data = await response.json();
+                        
+                        if (data.status === 'next') {
+                            // Load next song
+                            window.location.href = '/';
+                        } else {
+                            // Queue is empty, return to home (skip score)
+                            window.location.href = '/';
+                        }
+                    } catch (err) {
+                        console.error('Error stopping song:', err);
+                        window.location.href = '/';
+                    }
                 };
 
-                // Show start prompt overlay
+                // Show start prompt overlay with queue info
                 const startPrompt = document.getElementById('start-prompt');
+                const startPromptText = document.getElementById('start-prompt-text');
                 const player = document.getElementById('player');
+                
+                // Update start prompt with song number and queue position
+                const currentSong = '{{current_song}}';
+                const queuePosition = {{queue_position or 'null'}};
+                const queueLength = {{queue_length or 'null'}};
+                
+                if (currentSong && queuePosition && queueLength) {
+                    startPromptText.innerHTML = `Música #${currentSong}<br>(Posição ${queuePosition} de ${queueLength})<br><br>Preparado? Aperte Enter!`;
+                } else if (currentSong) {
+                    startPromptText.innerHTML = `Música #${currentSong}<br><br>Preparado? Aperte Enter!`;
+                }
+                
                 startPrompt.style.display = 'flex';
 
                 // Listen for Enter key to start video
@@ -218,6 +363,19 @@
 
                 document.addEventListener('keydown', handleKeyPress);
                 startPrompt.addEventListener('click', startVideo);
+                
+                // Handle video end - remove from queue then go to score page
+                player.onended = async function() {
+                    try {
+                        // Remove current song from queue
+                        await fetch('/next_song');
+                        // Always go to score page after music finishes
+                        window.location.href = '/score';
+                    } catch (err) {
+                        console.error('Error processing song end:', err);
+                        window.location.href = '/score';
+                    }
+                };
             </script>
         {% else %}
             <script>
@@ -225,7 +383,7 @@
                 document.getElementById('playlist-qr').style.display = 'flex';
             </script>
             <form method="post">
-                <h1 style="color:rgb(255, 255, 255);">Número da música</h1>
+                <h1 style="color:rgb(255, 255, 255); ">Número</h1>
                 <input type="text" name="song" id="song-input" pattern="\d*" maxlength="5" required autofocus style="text-align:center; font-size:4em; width:250px;">
                 <br>
                 <button type="submit" id="sing-btn" style="background: #9b2cb1; color: #fff; border: none; border-radius: 15%; width: 200px; height: 56px; font-size: 1.5em; box-shadow: 0 0 10px #000; cursor: pointer;">
@@ -239,5 +397,102 @@
             <img src="/static/setup_icon.png" alt="Setup" />
         </button>
     </a>
+    <script>
+        // Initialize queue management
+        const queueInput = document.getElementById('queue-input');
+        const queueAddBtn = document.getElementById('queue-add-btn');
+        const queueToast = document.getElementById('queue-toast');
+        const queueToggle = document.getElementById('queue-toggle');
+        const queueListContainer = document.getElementById('queue-list-container');
+        const queueList = document.getElementById('queue-list');
+        const queueCount = document.getElementById('queue-count');
+        const queueToggleIcon = document.getElementById('queue-toggle-icon');
+        
+        let isQueueExpanded = false;
+        
+        // Load initial queue from template
+        const initialQueue = {{ queue | tojson }};
+        updateQueueDisplay(initialQueue);
+        
+        // Add song to queue
+        queueAddBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const songNum = queueInput.value.trim();
+            
+            if (!songNum) {
+                showToast('Erro nesta musica, escolha outra', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/add_to_queue', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `song=${encodeURIComponent(songNum)}`
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showToast('OK', 'ok');
+                    updateQueueDisplay(data.queue);
+                    queueInput.value = '';
+                    queueInput.focus();
+                } else if (response.status === 409) {
+                    showToast('Música já selecionada', 'duplicate');
+                } else {
+                    showToast('Erro nesta musica, escolha outra', 'error');
+                }
+            } catch (err) {
+                console.error('Error adding to queue:', err);
+                showToast('Erro nesta musica, escolha outra', 'error');
+            }
+        });
+        
+        // Allow Enter key to add song
+        queueInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                queueAddBtn.click();
+            }
+        });
+        
+        // Toggle queue expansion
+        queueToggle.addEventListener('click', () => {
+            isQueueExpanded = !isQueueExpanded;
+            if (isQueueExpanded) {
+                queueListContainer.classList.add('expanded');
+                queueToggleIcon.textContent = '▲';
+            } else {
+                queueListContainer.classList.remove('expanded');
+                queueToggleIcon.textContent = '▼';
+            }
+        });
+        
+        // Show toast notification
+        function showToast(message, type) {
+            queueToast.textContent = message;
+            queueToast.className = `show ${type}`;
+            
+            setTimeout(() => {
+                queueToast.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Update queue display
+        function updateQueueDisplay(queue) {
+            queueCount.textContent = queue.length;
+            queueList.innerHTML = '';
+            
+            queue.forEach((songNum, index) => {
+                const item = document.createElement('div');
+                item.className = 'queue-item';
+                item.textContent = `${index + 1}. Música #${songNum}`;
+                queueList.appendChild(item);
+            });
+        }
+    </script>
 </body>
 </html>
