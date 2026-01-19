@@ -34,18 +34,6 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-# Version info for Windows executable
-version_info = [
-    ('CompanyName', 'Karoloke Churras LTDA'),
-    ('FileDescription', 'Karoloke - Simple Karaoke Player'),
-    ('FileVersion', '1.2.0'),
-    ('InternalName', 'karoloke'),
-    ('LegalCopyright', 'Copyright (C) 2026 Antonio Carlos da Silva Senra Filho'),
-    ('OriginalFilename', 'karoloke.exe'),
-    ('ProductName', 'Karoloke'),
-    ('ProductVersion', '1.2.0'),
-]
-
 exe = EXE(
     pyz,
     a.scripts,
@@ -62,8 +50,5 @@ exe = EXE(
     runtime_tmpdir=None,
     console=True,  # Set to False for windowed mode (no console)
     disable_windowing_fallback=False,
-    version=version_info,
-    # TODO: Add your custom icon here
-    # icon='../docs/assets/karoloke-icon.ico',  # Windows icon (will be generated in CI)
-    # icon='../docs/assets/karoloke-icon.icns',  # macOS icon (will be generated in CI)
+    icon='../docs/assets/karoloke-icon.ico',  # Windows/Linux icon
 )
