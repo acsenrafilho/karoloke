@@ -1,4 +1,6 @@
 import os
+import shutil
+import subprocess
 
 from karoloke.settings import VIDEO_FORMATS
 
@@ -30,3 +32,59 @@ def collect_playlist(root_dir: str) -> list:
                 video_files.append(os.path.join(dirpath, filename))
 
     return video_files
+
+
+def is_playable(path: str) -> bool:
+    """
+    Perform a lightweight check that a video file is likely playable by the browser.
+
+    The validation follows two steps:
+    1. Basic file checks: existence and file size > 0.
+    2. Optional ffprobe probe: if `ffprobe` is available in PATH, run a quick
+       probe and ensure it returns success; otherwise, fall back to the basic check.
+
+    Parameters
+    ----------
+    path : str
+        Absolute path to the video file to validate.
+
+    Returns
+    -------
+    bool
+        True if the file passes the checks, False otherwise.
+    """
+    if not os.path.exists(path):
+        return False
+
+    try:
+        if os.path.getsize(path) <= 0:
+            return False
+    except OSError:
+        return False
+
+    # If ffprobe is not available, accept based on size check
+    if shutil.which('ffprobe') is None:
+        return True
+
+    try:
+        result = subprocess.run(
+            [
+                'ffprobe',
+                '-v',
+                'error',
+                '-select_streams',
+                'v:0',
+                '-show_entries',
+                'stream=codec_type',
+                '-of',
+                'default=noprint_wrappers=1',
+                path,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=3,
+            check=False,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False

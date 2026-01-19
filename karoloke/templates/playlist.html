@@ -46,42 +46,200 @@
             background: #333;
             color: #fff;
         }
+        /* Queue widget */
+        #queue-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 24px auto 12px auto;
+            width: 90%;
+        }
+        #queue-input {
+            padding: 6px 10px;
+            font-size: 1em;
+            border: 1px solid #9b2cb1;
+            border-radius: 6px;
+            max-width: 140px;
+            text-align: center;
+        }
+        #queue-add-btn {
+            padding: 6px 14px;
+            background: #9b2cb1;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #queue-add-btn:hover {
+            background: #7d2cb1;
+        }
+        #queue-toast {
+            min-width: 140px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.95em;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        #queue-toast.show { opacity: 1; }
+        #queue-toast.ok { background: #4caf50; }
+        #queue-toast.duplicate { background: #ffc107; color: #000; }
+        #queue-toast.error { background: #f44336; }
+        /* Pagination */
+        #pagination {
+            width: 90%;
+            margin: 12px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .page-link, .page-link-disabled {
+            padding: 6px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #fff;
+            background: #444;
+        }
+        .page-link:hover { background: #666; }
+        .page-link-active {
+            background: #9b2cb1;
+            color: #fff;
+            font-weight: bold;
+        }
+        .page-link-disabled {
+            background: #333;
+            cursor: not-allowed;
+        }
+        #page-size-select {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #888;
+            background: #333;
+            color: #fff;
+        }
+        /* Footer status */
+        #status-footer {
+            width: 90%;
+            margin: 12px auto 32px auto;
+            text-align: right;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
-    <h1 style="text-align:center; margin-top:32px;">Playlist de Vídeos</h1>
+    <h1 style="text-align:center; margin-top:32px;">Playlist de Músicas</h1>
+    <!-- Queue add bar -->
+    <div id="queue-bar">
+        <input type="text" id="queue-input" pattern="\d*" maxlength="5" placeholder="Número">
+        <button id="queue-add-btn">Adicionar</button>
+        <div id="queue-toast"></div>
+    </div>
+
+    <!-- Pagination controls top -->
+    <div id="pagination">
+        <div class="page-links">
+            {% if page > 1 %}
+            <a class="page-link" href="?page={{page-1}}&page_size={{page_size}}">Anterior</a>
+            {% else %}
+            <span class="page-link-disabled">Anterior</span>
+            {% endif %}
+            {% for p in pages_list %}
+                {% if p == page %}
+                <span class="page-link page-link-active">{{p}}</span>
+                {% else %}
+                <a class="page-link" href="?page={{p}}&page_size={{page_size}}">{{p}}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page < total_pages %}
+            <a class="page-link" href="?page={{page+1}}&page_size={{page_size}}">Próxima</a>
+            {% else %}
+            <span class="page-link-disabled">Próxima</span>
+            {% endif %}
+        </div>
+        <form method="get" style="margin:0; display:flex; align-items:center; gap:8px;">
+            <label for="page-size-select">Itens por página:</label>
+            <select id="page-size-select" name="page_size" onchange="this.form.submit()">
+                {% for size in page_sizes %}
+                    <option value="{{size}}" {% if size == page_size %}selected{% endif %}>{{size}}</option>
+                {% endfor %}
+            </select>
+            <input type="hidden" name="page" value="1" />
+        </form>
+    </div>
+
     <table class="playlist-table" id="playlist-table">
         <thead>
             <tr>
                 <th>
-                    <input class="filter-input" type="text" placeholder="Filtrar filename" onkeyup="filterTable(0)">
-                    Filename
+                    <input class="filter-input" type="text" placeholder="Filtrar número" onkeyup="filterTable(0)">
+                    Número
                 </th>
                 <th>
                     <input class="filter-input" type="text" placeholder="Filtrar artista" onkeyup="filterTable(1)">
-                    Artist
+                    Artista
                 </th>
                 <th>
                     <input class="filter-input" type="text" placeholder="Filtrar título" onkeyup="filterTable(2)">
-                    Title
+                    Título
                 </th>
                 <th>
                     <input class="filter-input" type="text" placeholder="Filtrar parte" onkeyup="filterTable(3)">
-                    Part
+                    Parte
                 </th>
             </tr>
         </thead>
         <tbody id="playlist-body">
-            {% for video in playlist %}
-            <tr>
-                <td>{{ video.filename }}</td>
-                <td>{{ video.artist }}</td>
-                <td>{{ video.title }}</td>
-                <td>{{ video.part }}</td>
-            </tr>
-            {% endfor %}
+            {% if playlist and playlist|length > 0 %}
+                {% for video in playlist %}
+                <tr>
+                    <td>{{ video.filename }}</td>
+                    <td>{{ video.artist }}</td>
+                    <td>{{ video.title }}</td>
+                    <td>{{ video.part }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align:center;color:#ccc;">Nenhuma música disponível para listar nesta página.</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
+    <!-- Pagination controls bottom -->
+    <div id="pagination">
+        <div class="page-links">
+            {% if page > 1 %}
+            <a class="page-link" href="?page={{page-1}}&page_size={{page_size}}">Anterior</a>
+            {% else %}
+            <span class="page-link-disabled">Anterior</span>
+            {% endif %}
+            {% for p in pages_list %}
+                {% if p == page %}
+                <span class="page-link page-link-active">{{p}}</span>
+                {% else %}
+                <a class="page-link" href="?page={{p}}&page_size={{page_size}}">{{p}}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page < total_pages %}
+            <a class="page-link" href="?page={{page+1}}&page_size={{page_size}}">Próxima</a>
+            {% else %}
+            <span class="page-link-disabled">Próxima</span>
+            {% endif %}
+        </div>
+        <!-- Bottom pagination: only page links, no size selector -->
+    </div>
+
+    <div id="status-footer">Carregadas: {{ok_count}} | Erros: {{error_count}}</div>
+
     <script>
         // Filter function for each column
         function filterTable(colIdx) {
@@ -97,6 +255,55 @@
                 }
             }
         }
+
+        // Queue add logic
+        const queueInput = document.getElementById('queue-input');
+        const queueAddBtn = document.getElementById('queue-add-btn');
+        const queueToast = document.getElementById('queue-toast');
+
+        function showToast(message, type) {
+            queueToast.textContent = message;
+            queueToast.className = `${type} show`;
+            setTimeout(() => {
+                queueToast.classList.remove('show');
+            }, 2000);
+        }
+
+        queueAddBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const songNum = queueInput.value.trim();
+            if (!songNum) {
+                showToast('Erro nesta musica, escolha outra', 'error');
+                return;
+            }
+            try {
+                const response = await fetch('/add_to_queue', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `song=${encodeURIComponent(songNum)}`,
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast('OK', 'ok');
+                    queueInput.value = '';
+                    queueInput.focus();
+                } else if (response.status === 409) {
+                    showToast('Música já selecionada', 'duplicate');
+                } else {
+                    showToast('Erro nesta musica, escolha outra', 'error');
+                }
+            } catch (err) {
+                console.error('Queue add error', err);
+                showToast('Erro nesta musica, escolha outra', 'error');
+            }
+        });
+
+        queueInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                queueAddBtn.click();
+            }
+        });
     </script>
 </body>
 </html>

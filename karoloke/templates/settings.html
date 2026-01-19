@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Configurações - Karoloke</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            background: url('/background/{{bg_img}}') center center no-repeat fixed;
+            background-size: cover;
+            filter: blur(32px) brightness(0.5) saturate(1.7);
+        }
+        #settings-container {
+            background: rgba(0,0,0,0.85);
+            padding: 40px 50px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px #55075c;
+            z-index: 1;
+            position: relative;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .section {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
+        h2 {
+            color: #9b2cb1;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+        }
+        label {
+            color: #ccc;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        input[type="text"] {
+            font-size: 1.1em;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #888;
+            width: 100%;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+        }
+        select {
+            font-size: 1.1em;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #888;
+            width: 100%;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        button {
+            font-size: 1.1em;
+            padding: 12px 25px;
+            border-radius: 8px;
+            background: #55075c;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #7d2cb1;
+        }
+        .status-message {
+            color: #4caf50;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+        .error-message {
+            color: #f44336;
+            margin-top: 10px;
+            font-size: 0.95em;
+        }
+        .back-btn {
+            background: #444;
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1.1em;
+        }
+        .back-btn:hover {
+            background: #666;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .preview-info {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="settings-container">
+        <h1>⚙️ Configurações</h1>
+        
+        <!-- Background Folder Selection -->
+        <div class="section">
+            <h2>🖼️ Pasta de Backgrounds</h2>
+            <label for="background-folder">Selecione a pasta de imagens de fundo:</label>
+            <select id="background-folder" name="background_folder">
+                {% for folder in background_folders %}
+                <option value="{{ folder }}" {% if folder == current_background %}selected{% endif %}>
+                    {{ folder }}{% if folder == 'default' %} (Padrão){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            <p class="preview-info">Pasta atual: <strong>{{ current_background }}</strong></p>
+            <button onclick="saveBackgroundFolder()">Salvar Background</button>
+            <div id="background-status"></div>
+        </div>
+        
+        <!-- Video Directory Configuration -->
+        <div class="section">
+            <h2>📁 Pasta de Vídeos</h2>
+            <form id="video-dir-form">
+                <label for="video-dir-input">Caminho da pasta de vídeos:</label>
+                <input type="text" id="video-dir-input" name="video_dir" placeholder="Digite o caminho completo" required>
+                <button type="submit">Salvar Pasta</button>
+            </form>
+            <div id="video-dir-status"></div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="button-group">
+            <a href="/" class="back-btn">← Voltar ao Karaokê</a>
+        </div>
+    </div>
+    
+    <script>
+        // Save background folder
+        async function saveBackgroundFolder() {
+            const folder = document.getElementById('background-folder').value;
+            const statusDiv = document.getElementById('background-status');
+            
+            try {
+                const res = await fetch('/set_background_folder', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'folder=' + encodeURIComponent(folder)
+                });
+                const data = await res.json();
+                
+                if (data.status === 'ok') {
+                    statusDiv.className = 'status-message';
+                    statusDiv.textContent = '✓ Background atualizado com sucesso!';
+                    // Reload page after 1 second to show new background
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    statusDiv.className = 'error-message';
+                    statusDiv.textContent = '✗ Erro: ' + data.message;
+                }
+            } catch (err) {
+                statusDiv.className = 'error-message';
+                statusDiv.textContent = '✗ Erro ao salvar: ' + err.message;
+            }
+        }
+        
+        // Save video directory
+        document.getElementById('video-dir-form').onsubmit = async function(e) {
+            e.preventDefault();
+            const dir = document.getElementById('video-dir-input').value;
+            const statusDiv = document.getElementById('video-dir-status');
+            
+            try {
+                const res = await fetch('/setup_video_dir', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'video_dir=' + encodeURIComponent(dir)
+                });
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    statusDiv.className = 'status-message';
+                    statusDiv.textContent = '✓ Pasta de vídeos atualizada: ' + data.video_dir;
+                } else {
+                    statusDiv.className = 'error-message';
+                    statusDiv.textContent = '✗ Erro: ' + data.message;
+                }
+            } catch (err) {
+                statusDiv.className = 'error-message';
+                statusDiv.textContent = '✗ Erro ao salvar: ' + err.message;
+            }
+        };
+    </script>
+</body>
+</html>

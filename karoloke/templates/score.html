@@ -78,8 +78,8 @@
     </div>
     <audio id="score-audio" preload="auto"></audio>
     <script>
-        const REDIRECT_DELAY_MS = 7000; // Delay before redirecting after score reveal (ms)
-        const SCORE_REVEAL_DELAY_MS = 9000; // Duration of score animation before revealing final score (ms)
+        const REDIRECT_DELAY_MS = 4000; // Delay before redirecting after score reveal (ms)
+        const SCORE_REVEAL_DELAY_MS = 5000; // Duration of score animation before revealing final score (ms)
         const audio = document.getElementById('score-audio');
         audio.src = '/static/score_bg_audio.mp3';
         audio.play().catch(() => {
@@ -117,26 +117,26 @@
             gifTable.appendChild(img);
         });
 
+        // Hidden cheat: triple ArrowUp forces the final score to 100
+        let arrowUpCount = 0;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                arrowUpCount++;
+                console.log(`ArrowUp pressed: ${arrowUpCount}/1 for cheat`);
+            }
+        });
+
         // Score animation
         const scoreElem = document.getElementById('score');
-        let finalScore = Math.floor(Math.random() * 26) + 75; // 75-100
         let interval = setInterval(() => {
             scoreElem.textContent = Math.floor(Math.random() * 26) + 75;
         }, 80);
         setTimeout(() => {
             clearInterval(interval);
+            // Check if cheat was activated (1+ ArrowUp presses)
+            let finalScore = (arrowUpCount >= 1) ? 100 : Math.floor(Math.random() * 26) + 75;
             scoreElem.textContent = finalScore;
             scoreElem.style.fontSize = '7em';
-            // Send score and singer name to backend
-            const selectedSinger = "{{ request.args.get('singer', '') }}";
-            fetch('/submit_score', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    singer: selectedSinger,
-                    score: finalScore
-                })
-            });
             // Redirect after audio
             setTimeout(() => {
                 window.location.href = '/';
