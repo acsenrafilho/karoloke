@@ -197,7 +197,13 @@ def playlist_qr():
     except socket.gaierror:
         local_ip = 'localhost'
     port = request.environ.get('SERVER_PORT', request.host.split(':')[-1])
-    playlist_url = f"{request.scheme}://{local_ip}:{port}{url_for('playlist')}"
+    
+    # Original playlist route logic (commented for future use)
+    # playlist_url = f"{request.scheme}://{local_ip}:{port}{url_for('playlist')}"
+    
+    # Temporary solution: QR code points to a PDF file
+    playlist_url = "https://drive.google.com/file/d/1Mv06a6NNCY1udz38Q2fYjKdg57lI1hJr/view?usp=sharing"
+    
     img = qrcode.make(playlist_url)
     buf = io.BytesIO()
     img.save(buf, 'PNG')
