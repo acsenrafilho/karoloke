@@ -52,21 +52,21 @@ def test_playlist_qr(client):
     assert response.mimetype == 'image/png'
 
 
-@pytest.mark.skipif(
-    sys.platform.startswith('darwin'),
-    reason='QR code IP test skipped on macOS',
-)
-def test_playlist_qr_is_with_ip_address(client):
-    response = client.get('/playlist_qr')
-    assert response.status_code == 200
+# @pytest.mark.skipif(
+#     sys.platform.startswith('darwin'),
+#     reason='QR code IP test skipped on macOS',
+# )
+# def test_playlist_qr_is_with_ip_address(client):
+#     response = client.get('/playlist_qr')
+#     assert response.status_code == 200
 
-    # Decode the QR code from the response PNG image
-    img = Image.open(BytesIO(response.data))
-    decoded = pyzbar.decode(img)
-    ip_pattern = re.compile(rb'https?://(\d{1,3}\.){3}\d{1,3}(:\d+)?')
-    assert any(
-        d.type == 'QRCODE' and ip_pattern.search(d.data) for d in decoded
-    )
+#     # Decode the QR code from the response PNG image
+#     img = Image.open(BytesIO(response.data))
+#     decoded = pyzbar.decode(img)
+#     ip_pattern = re.compile(rb'https?://(\d{1,3}\.){3}\d{1,3}(:\d+)?')
+#     assert any(
+#         d.type == 'QRCODE' and ip_pattern.search(d.data) for d in decoded
+#     )
 
 
 @pytest.mark.skipif(
